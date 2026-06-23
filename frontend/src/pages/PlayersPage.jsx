@@ -10,10 +10,10 @@ const STATUS_TABS = [
   { key: '', label: '全部' },
 ];
 
-// 历届队长按时间顺序排列
+// 历届队长按时间排列（新→老）
 const CAPTAIN_ORDER = [
-  '张亦驰', '张劼', '霍禧齐', '依木拉', '杨晟',
-  '蓝煜', '赵润石', '高嘉恒', '莫洋', '宋哈尔', '汤派',
+  '汤派', '宋哈尔', '莫洋', '高嘉恒', '赵润石',
+  '蓝煜', '杨晟', '依木拉', '霍禧齐', '张劼', '张亦弛',
 ];
 
 export default function PlayersPage() {
@@ -95,13 +95,9 @@ export default function PlayersPage() {
                   <p className="text-sm font-semibold text-text-main whitespace-nowrap">
                     {c.name}
                   </p>
-                  {c.is_captain === 1 ? (
+                  {c.is_captain === 1 && (
                     <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">
                       现任
-                    </span>
-                  ) : (
-                    <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">
-                      第{i + 1}任
                     </span>
                   )}
                 </div>
