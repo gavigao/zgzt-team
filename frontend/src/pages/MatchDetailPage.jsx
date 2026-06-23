@@ -49,7 +49,15 @@ export default function MatchDetailPage() {
       {/* 比分卡 */}
       <div className="bg-white rounded-2xl card-shadow p-6 mb-6">
         <div className="flex items-center justify-between text-xs text-text-sub mb-4">
-          <span>{match.season_name}</span>
+          {match.competition ? (
+            <span className={`text-sm font-semibold px-3 py-1 rounded-full ${
+              match.competition === '新生赛' ? 'bg-blue-50 text-secondary' : 'bg-red-50 text-primary'
+            }`}>
+              {match.competition}{match.stage ? ` · ${match.stage}` : ''}
+            </span>
+          ) : (
+            <span />
+          )}
           <span className="flex items-center gap-1"><CalendarDays size={12} />{match.match_date}</span>
         </div>
 

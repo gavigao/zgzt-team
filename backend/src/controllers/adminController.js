@@ -79,12 +79,12 @@ exports.listMatches = async (req, res, next) => {
 
 exports.createMatch = async (req, res, next) => {
   try {
-    const { season_id, opponent, match_date, location, home_away, our_score, opponent_score, summary, is_highlighted } = req.body;
+    const { season_id, opponent, match_date, location, home_away, our_score, opponent_score, summary, is_highlighted, competition, stage } = req.body;
     if (!opponent || !match_date) return res.status(400).json({ code: 400, data: null, message: '对手和日期不能为空' });
 
     const [result] = await pool.query(
-      'INSERT INTO matches (season_id, opponent, match_date, location, home_away, our_score, opponent_score, summary, is_highlighted, created_by) VALUES (?,?,?,?,?,?,?,?,?,?)',
-      [season_id || null, opponent, match_date, location || null, home_away || 'home', our_score ?? null, opponent_score ?? null, summary || null, is_highlighted ? 1 : 0, req.user.id]
+      'INSERT INTO matches (season_id, opponent, match_date, location, home_away, our_score, opponent_score, summary, is_highlighted, competition, stage, created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+      [season_id || null, opponent, match_date, location || null, home_away || 'home', our_score ?? null, opponent_score ?? null, summary || null, is_highlighted ? 1 : 0, competition || null, stage || null, req.user.id]
     );
     const [rows] = await pool.query('SELECT m.*, s.name as season_name FROM matches m LEFT JOIN seasons s ON m.season_id = s.id WHERE m.id = ?', [result.insertId]);
     res.status(201).json({ code: 201, data: rows[0], message: '比赛添加成功' });
@@ -93,10 +93,10 @@ exports.createMatch = async (req, res, next) => {
 
 exports.updateMatch = async (req, res, next) => {
   try {
-    const { season_id, opponent, match_date, location, home_away, our_score, opponent_score, summary, is_highlighted } = req.body;
+    const { season_id, opponent, match_date, location, home_away, our_score, opponent_score, summary, is_highlighted, competition, stage } = req.body;
     const [result] = await pool.query(
-      'UPDATE matches SET season_id=?, opponent=?, match_date=?, location=?, home_away=?, our_score=?, opponent_score=?, summary=?, is_highlighted=? WHERE id=?',
-      [season_id || null, opponent, match_date, location || null, home_away || 'home', our_score ?? null, opponent_score ?? null, summary || null, is_highlighted ? 1 : 0, req.params.id]
+      'UPDATE matches SET season_id=?, opponent=?, match_date=?, location=?, home_away=?, our_score=?, opponent_score=?, summary=?, is_highlighted=?, competition=?, stage=? WHERE id=?',
+      [season_id || null, opponent, match_date, location || null, home_away || 'home', our_score ?? null, opponent_score ?? null, summary || null, is_highlighted ? 1 : 0, competition || null, stage || null, req.params.id]
     );
     if (result.affectedRows === 0) return res.status(404).json({ code: 404, data: null, message: '比赛不存在' });
     const [rows] = await pool.query('SELECT m.*, s.name as season_name FROM matches m LEFT JOIN seasons s ON m.season_id = s.id WHERE m.id = ?', [req.params.id]);

@@ -11,9 +11,17 @@ export default function MatchCard({ match }) {
       to={`/matches/${match.id}`}
       className="bg-white rounded-2xl card-shadow p-5 block hover:scale-[1.01] transition-transform"
     >
-      {/* 赛季 + 日期 */}
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-text-sub">{match.season_name || ''}</span>
+      {/* 赛事类型 + 阶段 */}
+      <div className="flex items-center justify-between mb-2">
+        {match.competition ? (
+          <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+            match.competition === '新生赛' ? 'bg-blue-50 text-secondary' : 'bg-red-50 text-primary'
+          }`}>
+            {match.competition}{match.stage ? ` · ${match.stage}` : ''}
+          </span>
+        ) : (
+          <span />
+        )}
         <span className="text-xs text-text-sub">{match.match_date}</span>
       </div>
 

@@ -78,6 +78,8 @@ CREATE TABLE IF NOT EXISTS matches (
   match_date DATE NOT NULL,
   location VARCHAR(200) DEFAULT NULL,
   home_away ENUM('home', 'away') DEFAULT 'home',
+  competition VARCHAR(20) DEFAULT NULL COMMENT '赛事类型：新生赛/联赛',
+  stage VARCHAR(50) DEFAULT NULL COMMENT '阶段：小组赛第一轮/半决赛/决赛/第一轮等',
   our_score INT DEFAULT NULL,
   opponent_score INT DEFAULT NULL,
   summary TEXT DEFAULT NULL COMMENT '赛后总结（支持 Markdown）',
