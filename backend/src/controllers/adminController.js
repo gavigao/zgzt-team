@@ -33,12 +33,12 @@ exports.listPlayers = async (req, res, next) => {
 
 exports.createPlayer = async (req, res, next) => {
   try {
-    const { name, position, jersey_number, grade, college, status, bio, is_captain, photo_url } = req.body;
+    const { name, position, jersey_number, grade, college, status, bio, is_captain, is_former_captain, photo_url } = req.body;
     if (!name) return res.status(400).json({ code: 400, data: null, message: '姓名不能为空' });
 
     const [result] = await pool.query(
-      'INSERT INTO players (name, position, jersey_number, grade, college, status, bio, is_captain, photo_url) VALUES (?,?,?,?,?,?,?,?,?)',
-      [name, position || null, jersey_number || null, grade || null, college || null, status || 'active', bio || null, is_captain ? 1 : 0, photo_url || null]
+      'INSERT INTO players (name, position, jersey_number, grade, college, status, bio, is_captain, is_former_captain, photo_url) VALUES (?,?,?,?,?,?,?,?,?,?)',
+      [name, position || null, jersey_number || null, grade || null, college || null, status || 'active', bio || null, is_captain ? 1 : 0, is_former_captain ? 1 : 0, photo_url || null]
     );
     const [rows] = await pool.query('SELECT * FROM players WHERE id = ?', [result.insertId]);
     res.status(201).json({ code: 201, data: rows[0], message: '队员添加成功' });
@@ -47,10 +47,10 @@ exports.createPlayer = async (req, res, next) => {
 
 exports.updatePlayer = async (req, res, next) => {
   try {
-    const { name, position, jersey_number, grade, college, status, bio, is_captain, photo_url } = req.body;
+    const { name, position, jersey_number, grade, college, status, bio, is_captain, is_former_captain, photo_url } = req.body;
     const [result] = await pool.query(
-      'UPDATE players SET name=?, position=?, jersey_number=?, grade=?, college=?, status=?, bio=?, is_captain=?, photo_url=? WHERE id=?',
-      [name, position || null, jersey_number || null, grade || null, college || null, status || 'active', bio || null, is_captain ? 1 : 0, photo_url || null, req.params.id]
+      'UPDATE players SET name=?, position=?, jersey_number=?, grade=?, college=?, status=?, bio=?, is_captain=?, is_former_captain=?, photo_url=? WHERE id=?',
+      [name, position || null, jersey_number || null, grade || null, college || null, status || 'active', bio || null, is_captain ? 1 : 0, is_former_captain ? 1 : 0, photo_url || null, req.params.id]
     );
     if (result.affectedRows === 0) return res.status(404).json({ code: 404, data: null, message: '队员不存在' });
     const [rows] = await pool.query('SELECT * FROM players WHERE id = ?', [req.params.id]);

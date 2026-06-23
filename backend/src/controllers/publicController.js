@@ -35,12 +35,13 @@ exports.getTeamInfo = async (req, res, next) => {
 
 exports.getPlayers = async (req, res, next) => {
   try {
-    const { status, college, page, limit } = req.query;
+    const { status, college, captain, page, limit } = req.query;
     const filters = [];
     const values = [];
 
     if (status) { filters.push('status = ?'); values.push(status); }
     if (college) { filters.push('college = ?'); values.push(college); }
+    if (captain === '1') { filters.push('(is_captain = 1 OR is_former_captain = 1)'); }
 
     const result = await paginatedQuery({
       baseTable: 'players',

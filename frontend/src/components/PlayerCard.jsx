@@ -46,7 +46,12 @@ export default function PlayerCard({ player }) {
       {/* 队长标识 */}
       {player.is_captain === 1 && (
         <span className="mt-1.5 text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
-          队长
+          现任队长
+        </span>
+      )}
+      {player.is_former_captain === 1 && (
+        <span className="mt-1.5 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+          历届队长
         </span>
       )}
 

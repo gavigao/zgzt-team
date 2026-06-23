@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { listPlayers, createPlayer, updatePlayer, deletePlayer } from '../../api/admin';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
 
-const EMPTY = { name: '', position: '', jersey_number: '', grade: '', college: '', status: 'active', bio: '', is_captain: false, photo_url: '' };
+const EMPTY = { name: '', position: '', jersey_number: '', grade: '', college: '', status: 'active', bio: '', is_captain: false, is_former_captain: false, photo_url: '' };
 
 export default function AdminPlayers() {
   const [players, setPlayers] = useState([]);
@@ -24,7 +24,7 @@ export default function AdminPlayers() {
     e.preventDefault();
     setSaving(true);
     try {
-      const data = { ...form, jersey_number: form.jersey_number ? parseInt(form.jersey_number) : null, grade: form.grade ? parseInt(form.grade) : null, is_captain: !!form.is_captain };
+      const data = { ...form, jersey_number: form.jersey_number ? parseInt(form.jersey_number) : null, grade: form.grade ? parseInt(form.grade) : null, is_captain: !!form.is_captain, is_former_captain: !!form.is_former_captain };
       if (editId) await updatePlayer(editId, data);
       else await createPlayer(data);
       setShowModal(false);
@@ -56,7 +56,7 @@ export default function AdminPlayers() {
           <tbody>
             {players.map(p => (
               <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50/50">
-                <td className="p-3 pl-4 font-medium">{p.name}{p.is_captain ? <span className="ml-1.5 text-xs text-amber-600">队长</span>:''}</td>
+                <td className="p-3 pl-4 font-medium">{p.name}{p.is_captain ? <span className="ml-1.5 text-xs text-amber-600">现任队长</span>:''}{p.is_former_captain ? <span className="ml-1.5 text-xs text-blue-600">历届队长</span>:''}</td>
                 <td className="p-3 text-text-sub">{p.position||'-'}</td>
                 <td className="p-3 text-text-sub">{p.jersey_number||'-'}</td>
                 <td className="p-3"><span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{p.college||'-'}</span></td>
@@ -93,7 +93,8 @@ export default function AdminPlayers() {
                 <select className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" value={form.status} onChange={e=>setForm({...form,status:e.target.value})}>
                   <option value="active">现役</option><option value="alumni">离队</option>
                 </select>
-                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!form.is_captain} onChange={e=>setForm({...form,is_captain:e.target.checked})}/>队长</label>
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!form.is_captain} onChange={e=>setForm({...form,is_captain:e.target.checked})}/>现任队长</label>
+                <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!form.is_former_captain} onChange={e=>setForm({...form,is_former_captain:e.target.checked})}/>历届队长</label>
               </div>
               <textarea className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" rows={2} placeholder="简介" value={form.bio} onChange={e=>setForm({...form,bio:e.target.value})}/>
               <button type="submit" disabled={saving} className="w-full py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-red-700 disabled:opacity-50">{saving?'保存中...':'保存'}</button>
