@@ -1,196 +1,107 @@
-# ⚽ 政国中统联队 — 球队官方网站
+# ⚽ 政国中统联队
 
-> 对外经济贸易大学 · 政国中统联队（政府管理学院 + 国际关系学院 + 中文学院 + 统计学院）  
-> 成立于 2019 年，全栈互动社区型官网
+> 政治学 · 管理学 · 文学 · 统计学 —— 四院同心，绿茵逐梦
+>
+> 对外经济贸易大学 | 成立于 2019 年
 
-[![Tech Stack](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev)
-[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite)](https://vite.dev)
-[![Tailwind](https://img.shields.io/badge/Tailwind-3-06B6D4?logo=tailwindcss)](https://tailwindcss.com)
-[![Express](https://img.shields.io/badge/Express-4-000000?logo=express)](https://expressjs.com)
-[![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql)](https://mysql.com)
-[![Node](https://img.shields.io/badge/Node-20-339933?logo=nodedotjs)](https://nodejs.org)
+---
 
-## ✨ 功能概览
+## 关于我们
 
-### 前台页面（无需登录即可浏览）
+**政国中统联队** 由对外经济贸易大学四个学院联合组建：
 
-| 页面 | 功能 |
+| 学院 | 简称 |
 |------|------|
-| 🏠 首页 | 全屏照片轮播 Hero + 最新比赛 + 球队新闻 |
-| 📖 球队历史 | 时间线大事记，从 2019 年建队至今 |
-| 👥 队员名录 | 现役/历届队员卡片，含姓名、号码、位置、学院 |
-| ⚔️ 比赛记录 | 按赛季筛选，大号比分展示，含赛后总结 |
-| 🏆 荣誉墙 | 团队荣誉 + 个人荣誉分类展示 |
-| 📰 新闻公告 | 球队新闻列表 + 详情页 |
-| 🖼️ 照片墙 | 相册封面 → 照片网格 → 全屏浏览（键盘翻页） |
-| 📅 训练活动 | 训练/活动日程，支持即将/已完成/已取消状态 |
+| 政府管理学院 | 政 |
+| 国际关系学院 | 国 |
+| 中文学院（文学与国际传播学院） | 中 |
+| 统计学院 | 统 |
 
-### 互动功能
+自 2019 年成立以来，联队在校联赛中屡创佳绩。这个网站记录我们的比赛、荣誉、队员和每一个值得铭记的瞬间。
 
-- 🔐 开放注册 + JWT 登录（7 天有效期）
-- 💬 比赛评论区：登录后可发表评论，支持删除自己的评论
-- 📸 管理后台图片上传（拖拽 + 点击上传）
+---
 
-### 管理后台（仅管理员）
+## 网站能做什么
 
-- 📊 仪表盘：统计概览
-- 👤 队员管理、⚔️ 比赛管理、📰 新闻管理
-- 🏆 荣誉管理、🖼️ 相册 & 照片管理
-- 📅 训练管理、👥 用户管理、⚙️ 网站设置
+### 🏠 首页
 
-## 🛠️ 技术栈
+打开网站第一眼看到的就是**全屏照片轮播**——捧杯时刻、颁奖合照、毕业礼物、决赛庆祝……往下滑是最新比赛战报和球队新闻。
 
-| 层级 | 技术 | 说明 |
-|------|------|------|
-| **前端** | React 19 + Vite 8 + Tailwind CSS v3 | SPA 单页应用 |
-| **路由** | react-router-dom v7 | 前台 13 页面 + 后台 11 页面 |
-| **图标** | lucide-react | 统一图标库 |
-| **HTTP** | axios | 请求拦截 + JWT 注入 + 401 自动跳转 |
-| **后端** | Express 4 + mysql2/promise | RESTful API，共 ~40 个接口 |
-| **认证** | jsonwebtoken + bcrypt | 单一 JWT，7 天有效期 |
-| **上传** | multer | 本地磁盘存储，5MB 限制 |
-| **数据库** | MySQL 8 | 11 张表，utf8mb4 编码 |
-| **部署** | Nginx + PM2 | 反向代理 + SPA 回退 + 进程守护 |
+### 👥 队员名录
 
-## 📁 项目结构
+历届队员的专属页面，每位队员一张卡片：**姓名、球衣号码、场上位置、所属学院**。可以按"现役"和"历届"筛选。
 
-```
-球队网站/
-├── frontend/                  # React 前端
-│   ├── public/
-│   │   ├── images/            # 首页轮播图等静态资源
-│   │   └── favicon.ico
-│   └── src/
-│       ├── api/               # API 接口封装（index/auth/public/comments/admin）
-│       ├── components/        # 可复用组件（MatchCard/PlayerCard/CommentSection/ImageUploader...）
-│       ├── context/           # AuthContext — 认证状态管理
-│       ├── layouts/           # PublicLayout（顶部导航+页脚）/ AdminLayout（侧边栏）
-│       ├── pages/             # 前台页面 + admin/ 后台页面
-│       ├── App.jsx            # 路由定义
-│       ├── index.css          # Tailwind + 全局样式
-│       └── main.jsx           # 入口
-├── backend/                   # Express 后端
-│   ├── public/uploads/        # 图片上传目录
-│   └── src/
-│       ├── config/auth.js     # JWT 密钥配置
-│       ├── db/index.js        # MySQL 连接池
-│       ├── middleware/        # auth（JWT 验证）/ admin（管理员权限）/ upload（图片上传）
-│       ├── controllers/      # 4 个控制器（auth/public/comment/admin）
-│       ├── routes/           # 4 组路由
-│       └── app.js            # 应用入口
-├── schema.sql                 # 数据库建表（11 张表）
-├── seeds/setup.js             # 数据库初始化脚本（建库 + 建表 + 种子数据）
-├── deploy.sh                  # 一键部署脚本
-└── README.md
-```
+### ⚔️ 比赛记录
 
-## 🚀 本地开发
+每一场比赛都有记录：**对阵双方、比分、日期、地点、赛后总结**。按赛季筛选，输赢一目了然 —— 红色是胜利，黄色是平局，灰色是惜败。
 
-### 环境要求
+点进任意一场比赛，能看到大号比分展示和赛后总结，还可以在下方**评论区留言**。
 
-- Node.js 20+
-- MySQL 8.0+
-- npm 或 yarn
+### 🏆 荣誉墙
 
-### 1. 克隆项目
+团队荣誉和个人荣誉分类展示，记录联队的每一个高光时刻。
 
-```bash
-git clone https://github.com/gavigao/zgzt-team.git
-cd zgzt-team
-```
+### 📰 球队新闻
 
-### 2. 初始化数据库
+队长发布的球队公告、战报、活动通知等。
 
-```bash
-# 用 Node.js 一键初始化（推荐）
-cd backend
-npm install
-node seeds/setup.js
+### 🖼️ 照片墙
 
-# 或手动执行 SQL
-# mysql -u root -p < backend/schema.sql
-```
+按相册浏览照片，点击任意照片进入**全屏浏览模式**，可以用键盘 ← → 翻页、Esc 退出。
 
-> setup.js 会自动：创建数据库 → 执行建表 → 创建默认管理员（admin / admin123）
+### 📅 训练活动
 
-### 3. 配置环境变量
+查看最近的训练和活动安排：时间、地点、内容，状态分"即将进行""已完成""已取消"。
 
-```bash
-cp backend/.env.example backend/.env
-# 按需修改 DB_HOST / DB_PORT / DB_USER / DB_PASSWORD / DB_NAME / JWT_SECRET
-```
+---
 
-`.env.example` 内容：
+## 怎么参与
 
-```env
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_mysql_password
-DB_NAME=zgzt_team
-JWT_SECRET=your_random_secret_key
-PORT=3002
-```
+### 🔹 作为访客
 
-### 4. 启动后端
+所有内容都**无需登录即可浏览**。想看看联队的历史、队员、比赛？直接访问就行。
 
-```bash
-cd backend
-npm run dev        # nodemon 热重载，默认监听 3002 端口
-```
+### 🔹 注册账号
 
-### 5. 启动前端
+点击导航栏右上角的「登录」→「注册新账号」，填好用户名和密码即可。注册后可以：
 
-```bash
-cd frontend
-npm install
-npm run dev        # Vite 开发服务器，默认 5174 端口
-```
+- 💬 在比赛详情页发表评论
+- 🔖 登录状态保持 7 天，不用反复登录
 
-浏览器打开 `http://localhost:5174`，前端自动代理 `/api` 请求到 `localhost:3002`。
+### 🔹 评论互动
 
-### 默认账号
+进入任意一场比赛的详情页，在底部评论区写下你的看法。自己发表的评论可以随时删除。
 
-| 角色 | 用户名 | 密码 |
-|------|--------|------|
-| 管理员 | `admin` | `admin123` |
+---
 
-## 🌐 部署上线
+## 队长管理
 
-项目配套了一键部署脚本 `deploy.sh`，适用于 Ubuntu 服务器：
+队长（管理员）登录后会看到「管理后台」入口，可以在后台：
 
-```bash
-# 在服务器上执行
-bash <(curl -s https://raw.githubusercontent.com/gavigao/zgzt-team/main/deploy.sh)
-```
+| 功能 | 说明 |
+|------|------|
+| 📊 仪表盘 | 查看球队数据概览 |
+| 👥 队员管理 | 添加/编辑/删除队员信息 |
+| ⚔️ 比赛管理 | 录入比赛、编辑比分和赛后总结 |
+| 📰 新闻管理 | 发布新闻公告 |
+| 🏆 荣誉管理 | 添加团队/个人荣誉 |
+| 🖼️ 照片管理 | 创建相册、上传照片 |
+| 📅 训练管理 | 发布训练/活动日程 |
+| 👤 用户管理 | 查看注册用户、设置其他管理员 |
+| ⚙️ 网站设置 | 编辑球队介绍和历史 |
 
-部署流程：
-1. 安装 Node.js 20 / Nginx / PM2
-2. 从 GitHub 拉取最新代码
-3. 配置 `.env` 环境变量
-4. 初始化 MySQL 数据库
-5. `npm run build` 构建前端
-6. 配置 Nginx（反向代理 + SPA 回退）+ PM2 启动
+后台所有操作都是表单弹窗式编辑，所见即所得。
 
-部署后通过服务器 IP 或域名访问。
+---
 
-## 🔌 API 接口
+## 📮 反馈与建议
 
-| 前缀 | 用途 | 认证 |
-|------|------|------|
-| `/api/auth` | 注册、登录、获取用户信息 | 部分需登录 |
-| `/api/public` | 公开内容（队员、比赛、荣誉、新闻、照片、训练等） | 无需认证 |
-| `/api/comments` | 比赛评论 | 发表需登录 |
-| `/api/admin` | 管理后台 CRUD | 需管理员 |
+网站还在不断完善中。如果你有想法或发现了问题，欢迎直接联系队长或在比赛评论区留言。
 
-## 🎨 设计风格
-
-- **配色**：白色主背景 + 红色 `#C41E3A` / 蓝色 `#1A3A8A` 点缀（与球队球衣一致）
-- **风格**：参考巴塞罗那官网，深色导航栏 + 大面积白色内容区 + 卡片式列表
-- **响应式**：桌面端宽屏大气，移动端折叠导航 + 自适应布局
+也可以到 GitHub 提 Issue：[github.com/gavigao/zgzt-team](https://github.com/gavigao/zgzt-team)
 
 ---
 
 <p align="center">
-  <sub>Made with ⚽ by 政国中统联队 · Since 2019</sub>
+  <sub>⚽ 政国中统 · 四院同心 · Since 2019</sub>
 </p>
