@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getMatchById } from '../api/public';
 import CommentSection from '../components/CommentSection';
-import { MapPin, CalendarDays, Trophy, ArrowLeft } from 'lucide-react';
+import { CalendarDays, Trophy, ArrowLeft } from 'lucide-react';
 
 export default function MatchDetailPage() {
   const { id } = useParams();
@@ -65,9 +65,6 @@ export default function MatchDetailPage() {
           {/* 主队 */}
           <div className="flex-1 text-center">
             <p className="text-lg font-bold text-text-main">政国中统</p>
-            <p className="text-xs text-text-sub mt-1">
-              {match.home_away === 'home' ? '🏠 主场' : '✈️ 客场'}
-            </p>
           </div>
 
           {/* 比分 */}
@@ -99,11 +96,6 @@ export default function MatchDetailPage() {
           {/* 客队 */}
           <div className="flex-1 text-center">
             <p className="text-lg font-bold text-text-main">{match.opponent}</p>
-            {match.location && (
-              <p className="text-xs text-text-sub mt-1 flex items-center justify-center gap-1">
-                <MapPin size={11} /> {match.location}
-              </p>
-            )}
           </div>
         </div>
       </div>

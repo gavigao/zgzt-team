@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { MapPin } from 'lucide-react';
 
 export default function MatchCard({ match }) {
   const isWin = match.our_score > match.opponent_score;
@@ -29,7 +28,6 @@ export default function MatchCard({ match }) {
       <div className="flex items-center justify-between">
         <div className="flex-1 text-right">
           <p className="font-semibold text-text-main">政国中统</p>
-          <p className="text-xs text-text-sub mt-0.5">{match.home_away === 'home' ? '主场' : '客场'}</p>
         </div>
 
         {/* 比分 */}
@@ -59,12 +57,6 @@ export default function MatchCard({ match }) {
 
         <div className="flex-1 text-left">
           <p className="font-semibold text-text-main">{match.opponent}</p>
-          {match.location && (
-            <p className="text-xs text-text-sub mt-0.5 flex items-center gap-1 justify-start">
-              <MapPin size={11} />
-              {match.location}
-            </p>
-          )}
         </div>
       </div>
 

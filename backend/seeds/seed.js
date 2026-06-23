@@ -15,18 +15,13 @@ async function seed() {
 
   // 插入几个示例赛季
   const seasons = [
-    ['2019-2020', '联队成立元年'],
-    ['2020-2021', null],
-    ['2021-2022', null],
-    ['2022-2023', null],
-    ['2023-2024', null],
-    ['2024-2025', null],
-    ['2025-2026', '当前赛季'],
+    '2019-2020', '2020-2021', '2021-2022', '2022-2023',
+    '2023-2024', '2024-2025', '2025-2026',
   ];
-  for (const [name, desc] of seasons) {
+  for (const name of seasons) {
     await pool.execute(
-      'INSERT IGNORE INTO seasons (name, description, is_current) VALUES (?, ?, ?)',
-      [name, desc, name === '2025-2026' ? 1 : 0]
+      'INSERT IGNORE INTO seasons (name) VALUES (?)',
+      [name]
     );
   }
   console.log('  赛季数据已填充（7 个赛季）');

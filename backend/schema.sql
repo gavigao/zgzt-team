@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(100) DEFAULT NULL,
   password_hash VARCHAR(255) NOT NULL,
   role ENUM('admin', 'player') NOT NULL DEFAULT 'player',
-  player_id INT DEFAULT NULL COMMENT '关联 players 表（可为空）',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_role (role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -42,18 +41,12 @@ CREATE TABLE IF NOT EXISTS players (
   INDEX idx_college (college)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- users.player_id 外键
-ALTER TABLE users ADD CONSTRAINT fk_users_player
-  FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE SET NULL;
-
 -- =====================
 -- 3. 赛季表
 -- =====================
 CREATE TABLE IF NOT EXISTS seasons (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(20) NOT NULL COMMENT '赛季名称，如 2019-2020',
-  description TEXT DEFAULT NULL,
-  is_current TINYINT(1) DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -76,14 +69,11 @@ CREATE TABLE IF NOT EXISTS matches (
   season_id INT DEFAULT NULL,
   opponent VARCHAR(100) NOT NULL COMMENT '对手',
   match_date DATE NOT NULL,
-  location VARCHAR(200) DEFAULT NULL,
-  home_away ENUM('home', 'away') DEFAULT 'home',
   competition VARCHAR(20) DEFAULT NULL COMMENT '赛事类型：新生赛/联赛',
   stage VARCHAR(50) DEFAULT NULL COMMENT '阶段：小组赛第一轮/半决赛/决赛/第一轮等',
   our_score INT DEFAULT NULL,
   opponent_score INT DEFAULT NULL,
   summary TEXT DEFAULT NULL COMMENT '赛后总结（支持 Markdown）',
-  is_highlighted TINYINT(1) DEFAULT 0 COMMENT '精选/焦点战',
   created_by INT DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

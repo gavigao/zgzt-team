@@ -99,7 +99,7 @@ exports.login = async (req, res, next) => {
 exports.getMe = async (req, res, next) => {
   try {
     const [rows] = await pool.execute(
-      'SELECT id, username, email, role, player_id, created_at FROM users WHERE id = ?',
+      'SELECT id, username, email, role, created_at FROM users WHERE id = ?',
       [req.user.id]
     );
 
