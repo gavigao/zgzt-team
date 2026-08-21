@@ -41,6 +41,7 @@ export const uploadPhoto = (albumId, formData) => {
   });
 };
 export const deletePhoto = (id) => api.delete(`/admin/photos/${id}`);
+export const movePhoto = (id, albumId) => api.put(`/admin/photos/${id}/album`, { album_id: albumId });
 
 // 训练 CRUD
 export const listTraining = () => api.get('/admin/training');

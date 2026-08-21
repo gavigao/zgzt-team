@@ -42,9 +42,10 @@ router.post('/albums', ctrl.createAlbum);
 router.put('/albums/:id', ctrl.updateAlbum);
 router.delete('/albums/:id', ctrl.deleteAlbum);
 
-// 照片（上传 & 删除）
+// 照片（上传、删除、移动）
 router.post('/albums/:id/photos', upload.single('image'), ctrl.uploadPhoto);
 router.delete('/photos/:id', ctrl.deletePhoto);
+router.put('/photos/:id/album', ctrl.movePhoto);
 
 // 训练 CRUD
 router.get('/training', ctrl.listTraining);

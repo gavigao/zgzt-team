@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { listAlbums, createAlbum, updateAlbum, deleteAlbum, uploadPhoto, deletePhoto } from '../../api/admin';
+import { listAlbums, createAlbum, updateAlbum, deleteAlbum, uploadPhoto, deletePhoto, movePhoto } from '../../api/admin';
 import { getAlbumPhotos } from '../../api/public';
-import { Plus, Edit2, Trash2, X, Upload } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Upload, ArrowRight } from 'lucide-react';
 
 export default function AdminPhotos() {
   const [albums, setAlbums] = useState([]);
@@ -17,6 +17,8 @@ export default function AdminPhotos() {
   const [caption, setCaption] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
+  const [moveTarget, setMoveTarget] = useState(null);
+  const [moveAlbumId, setMoveAlbumId] = useState('');
 
   const loadAlbums = async () => { try { setAlbums((await listAlbums()).data); } catch {} finally { setLoading(false); } };
   useEffect(() => { loadAlbums(); }, []);
@@ -66,6 +68,15 @@ export default function AdminPhotos() {
     try { await deletePhoto(id); setPhotos(p => p.filter(ph => ph.id !== id)); } catch (err) { alert(err.message); }
   };
 
+  const handleMove = async () => {
+    if (!moveTarget || !moveAlbumId) return alert('请选择目标相册');
+    try {
+      await movePhoto(moveTarget.id, moveAlbumId);
+      setPhotos(p => p.filter(ph => ph.id !== moveTarget.id));
+      setMoveTarget(null); setMoveAlbumId('');
+    } catch (err) { alert(err.message); }
+  };
+
   if (loading) return <div className="space-y-2">{[1,2,3].map(i=><div key={i} className="skeleton h-12 rounded-xl"/>)}</div>;
 
   return (
@@ -113,8 +124,30 @@ export default function AdminPhotos() {
               </button>
             </div>
             <div className="p-3 grid grid-cols-3 gap-2">
-              {photos.map(p=>(<div key={p.id} className="relative group"><img src={p.url} className="aspect-square object-cover rounded-lg w-full"/><button onClick={()=>handleDeletePhoto(p.id)} className="absolute top-1 right-1 p-0.5 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X size={12}/></button></div>))}
+              {photos.map(p=>(
+                <div key={p.id} className="relative group">
+                  <img src={p.url} className="aspect-square object-cover rounded-lg w-full"/>
+                  <button onClick={()=>handleDeletePhoto(p.id)} className="absolute top-1 right-1 p-0.5 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity" title="删除"><X size={12}/></button>
+                  <button onClick={()=>{setMoveTarget(p); setMoveAlbumId('');}} className="absolute top-1 left-1 p-0.5 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity" title="移动到其他相册"><ArrowRight size={12}/></button>
+                </div>
+              ))}
               {photos.length===0 && <p className="col-span-3 text-center text-sm text-text-sub py-8">暂无照片</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Move Photo Modal */}
+      {moveTarget && (
+        <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4" onClick={()=>setMoveTarget(null)}>
+          <div className="bg-white rounded-2xl w-full max-w-sm" onClick={e=>e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b"><h2 className="font-semibold">移动照片到相册</h2><button onClick={()=>setMoveTarget(null)}><X size={18}/></button></div>
+            <div className="p-4 space-y-3">
+              <select className="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm" value={moveAlbumId} onChange={e=>setMoveAlbumId(e.target.value)}>
+                <option value="">选择目标相册...</option>
+                {albums.filter(a=>a.id!==currentAlbum?.id).map(a=><option key={a.id} value={a.id}>{a.title}</option>)}
+              </select>
+              <button onClick={handleMove} disabled={!moveAlbumId} className="w-full py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-red-700 disabled:opacity-50">移动</button>
             </div>
           </div>
         </div>

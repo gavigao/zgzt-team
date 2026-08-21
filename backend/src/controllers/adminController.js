@@ -282,6 +282,17 @@ exports.deletePhoto = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+// 移动照片到其他相册
+exports.movePhoto = async (req, res, next) => {
+  try {
+    const { album_id } = req.body;
+    if (!album_id) return res.status(400).json({ code: 400, data: null, message: '请指定目标相册' });
+    const [result] = await pool.query('UPDATE photos SET album_id = ? WHERE id = ?', [album_id, req.params.id]);
+    if (result.affectedRows === 0) return res.status(404).json({ code: 404, data: null, message: '照片不存在' });
+    res.json({ code: 200, data: null, message: '照片已移动' });
+  } catch (err) { next(err); }
+};
+
 // ==================== 训练管理 ====================
 
 exports.listTraining = async (req, res, next) => {
