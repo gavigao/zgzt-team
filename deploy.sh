@@ -115,12 +115,15 @@ node seeds/setup.js
 cd "$PROJECT_DIR/frontend"
 npm ci
 npm run build
+# 修复 dist 目录权限：vite 默认把 dist 建成 700，导致 nginx(www-data) 读不到返回 403
+chmod -R 755 "$PROJECT_DIR/frontend/dist"
 
 # ---------- 7. 配置 Nginx（server_name _ 匹配 IP 和任意域名，监听自定义端口） ----------
 cat > /etc/nginx/sites-available/zgzt-team <<NGINX
 server {
     listen ${WEB_PORT};
     server_name _;
+    client_max_body_size 5m;
 
     root ${PROJECT_DIR}/frontend/dist;
     index index.html;

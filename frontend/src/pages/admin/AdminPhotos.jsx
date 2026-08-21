@@ -13,8 +13,10 @@ export default function AdminPhotos() {
   const [saving, setSaving] = useState(false);
   const [currentAlbum, setCurrentAlbum] = useState(null);
   const [photos, setPhotos] = useState([]);
-  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadFiles, setUploadFiles] = useState([]);
   const [caption, setCaption] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
 
   const loadAlbums = async () => { try { setAlbums((await listAlbums()).data); } catch {} finally { setLoading(false); } };
   useEffect(() => { loadAlbums(); }, []);
@@ -36,16 +38,27 @@ export default function AdminPhotos() {
   };
 
   const handleUpload = async () => {
-    if (!uploadFile) return alert('请选择图片');
-    const fd = new FormData();
-    fd.append('image', uploadFile);
-    if (caption) fd.append('caption', caption);
+    if (uploadFiles.length === 0) return alert('请选择图片');
+    setUploading(true);
+    const total = uploadFiles.length;
+    setUploadProgress({ done: 0, total });
     try {
-      await uploadPhoto(currentAlbum.id, fd);
+      for (let i = 0; i < total; i++) {
+        const fd = new FormData();
+        fd.append('image', uploadFiles[i]);
+        if (caption) fd.append('caption', caption);
+        await uploadPhoto(currentAlbum.id, fd);
+        setUploadProgress({ done: i + 1, total });
+      }
       const res = await getAlbumPhotos(currentAlbum.id);
       setPhotos(res.data);
-      setUploadFile(null); setCaption('');
-    } catch (err) { alert(err.message); }
+      setUploadFiles([]); setCaption('');
+      alert(`成功上传 ${total} 张照片`);
+    } catch (err) {
+      alert(`上传失败：${err.message}`);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleDeletePhoto = async (id) => {
@@ -93,9 +106,11 @@ export default function AdminPhotos() {
           <div className="bg-white rounded-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b"><h2 className="font-semibold">{currentAlbum?.title} - 照片</h2><button onClick={()=>setShowP(false)}><X size={18}/></button></div>
             <div className="p-3 border-b flex gap-2 flex-wrap items-end">
-              <input type="file" accept="image/*" onChange={e=>setUploadFile(e.target.files[0])} className="text-sm"/>
+              <input type="file" accept="image/*" multiple onChange={e=>setUploadFiles(Array.from(e.target.files || []))} className="text-sm"/>
               <input className="px-2 py-1.5 bg-gray-50 border rounded-lg text-xs flex-1" placeholder="说明" value={caption} onChange={e=>setCaption(e.target.value)}/>
-              <button onClick={handleUpload} className="px-3 py-1.5 bg-primary text-white text-xs rounded-lg hover:bg-red-700">上传</button>
+              <button onClick={handleUpload} disabled={uploading} className="px-3 py-1.5 bg-primary text-white text-xs rounded-lg hover:bg-red-700 disabled:opacity-50">
+                {uploading ? `上传中 ${uploadProgress.done}/${uploadProgress.total}` : `上传${uploadFiles.length ? ` ${uploadFiles.length} 张` : ''}`}
+              </button>
             </div>
             <div className="p-3 grid grid-cols-3 gap-2">
               {photos.map(p=>(<div key={p.id} className="relative group"><img src={p.url} className="aspect-square object-cover rounded-lg w-full"/><button onClick={()=>handleDeletePhoto(p.id)} className="absolute top-1 right-1 p-0.5 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"><X size={12}/></button></div>))}
