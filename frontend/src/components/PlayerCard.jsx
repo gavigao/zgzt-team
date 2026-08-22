@@ -1,13 +1,6 @@
 import { User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const COLLEGE_COLORS = {
-  '政管': 'bg-blue-100 text-blue-700',
-  '国关': 'bg-red-100 text-red-700',
-  '中文': 'bg-green-100 text-green-700',
-  '统计': 'bg-purple-100 text-purple-700',
-};
-
 export default function PlayerCard({ player }) {
   return (
     <Link
@@ -33,15 +26,6 @@ export default function PlayerCard({ player }) {
 
       {/* 位置 */}
       <p className="text-xs text-text-sub mt-0.5">{player.position || '-'}</p>
-
-      {/* 学院标签 */}
-      <span
-        className={`mt-2 text-xs px-2 py-0.5 rounded-full font-medium ${
-          COLLEGE_COLORS[player.college] || 'bg-gray-100 text-gray-600'
-        }`}
-      >
-        {player.college || '未知'}
-      </span>
 
       {/* 队长标识 */}
       {player.is_captain === 1 && (
