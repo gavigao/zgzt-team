@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { listPlayers, createPlayer, updatePlayer, deletePlayer } from '../../api/admin';
+import { listPlayers, createPlayer, updatePlayer, deletePlayer, uploadImage } from '../../api/admin';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
+import ImageUploader from '../../components/ImageUploader';
 
 const EMPTY = { name: '', position: '', jersey_number: '', grade: '', college: '', status: 'active', bio: '', join_year: '', message: '', is_captain: false, is_former_captain: false, photo_url: '' };
 
@@ -77,6 +78,18 @@ export default function AdminPlayers() {
           <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b"><h2 className="font-semibold">{editId?'编辑队员':'新增队员'}</h2><button onClick={()=>setShowModal(false)}><X size={18}/></button></div>
             <form onSubmit={handleSave} className="p-4 space-y-3">
+              <ImageUploader
+                currentUrl={form.photo_url}
+                previewSize="h-32"
+                onUpload={async (file) => {
+                  const fd = new FormData();
+                  fd.append('image', file);
+                  const res = await uploadImage(fd);
+                  const url = res.data.url;
+                  setForm({ ...form, photo_url: url });
+                  return url;
+                }}
+              />
               <input className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" placeholder="姓名 *" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} required/>
               <div className="grid grid-cols-2 gap-2">
                 <input className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" placeholder="位置" value={form.position} onChange={e=>setForm({...form,position:e.target.value})}/>

@@ -293,6 +293,15 @@ exports.movePhoto = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+// 通用图片上传（返回 URL，供队员照片等使用）
+exports.uploadImage = async (req, res, next) => {
+  try {
+    if (!req.file) return res.status(400).json({ code: 400, data: null, message: '请选择图片文件' });
+    const url = '/uploads/' + req.file.filename;
+    res.json({ code: 200, data: { url }, message: '上传成功' });
+  } catch (err) { next(err); }
+};
+
 // ==================== 训练管理 ====================
 
 exports.listTraining = async (req, res, next) => {
