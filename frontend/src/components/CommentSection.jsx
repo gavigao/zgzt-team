@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getComments, createComment, deleteComment } from '../api/comments';
-import { Trash2, MessageCircle } from 'lucide-react';
+import { getComments, createComment, deleteComment, toggleLike } from '../api/comments';
+import { Trash2, MessageCircle, Heart } from 'lucide-react';
 
 export default function CommentSection({ matchId }) {
   const { user, isAdmin } = useAuth();
@@ -48,6 +48,21 @@ export default function CommentSection({ matchId }) {
     }
   };
 
+  const handleLike = async (comment) => {
+    if (!user) {
+      alert('请先登录后再点赞');
+      return;
+    }
+    try {
+      const res = await toggleLike(comment.id);
+      setComments(prev => prev.map(c =>
+        c.id === comment.id ? { ...c, liked: res.data.liked, like_count: res.data.like_count } : c
+      ));
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-3">
@@ -81,6 +96,15 @@ export default function CommentSection({ matchId }) {
                 </div>
               </div>
               <p className="text-sm text-text-main whitespace-pre-wrap">{c.content}</p>
+              <div className="mt-2 flex items-center gap-1.5">
+                <button
+                  onClick={() => handleLike(c)}
+                  className={`flex items-center gap-1 text-xs transition-colors ${c.liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                >
+                  <Heart size={14} className={c.liked ? 'fill-red-500' : ''} />
+                  <span>{c.like_count || 0}</span>
+                </button>
+              </div>
             </div>
           ))}
         </div>

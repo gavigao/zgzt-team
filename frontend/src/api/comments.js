@@ -9,3 +9,6 @@ export const createComment = (matchId, content) =>
 
 // 删除评论
 export const deleteComment = (id) => api.delete(`/comments/${id}`);
+
+// 点赞/取消点赞
+export const toggleLike = (id) => api.post(`/comments/${id}/like`);
