@@ -33,6 +33,8 @@ CREATE TABLE IF NOT EXISTS players (
   college VARCHAR(50) DEFAULT NULL COMMENT '所属学院（政管/国关/中文/统计）',
   status ENUM('active', 'alumni') NOT NULL DEFAULT 'active' COMMENT '现役/离队',
   bio TEXT DEFAULT NULL COMMENT '个人简介',
+  join_year YEAR DEFAULT NULL COMMENT '入队年份',
+  message TEXT DEFAULT NULL COMMENT '寄语',
   is_captain TINYINT(1) DEFAULT 0 COMMENT '现任队长',
   is_former_captain TINYINT(1) DEFAULT 0 COMMENT '历届队长',
   sort_order INT DEFAULT 0,

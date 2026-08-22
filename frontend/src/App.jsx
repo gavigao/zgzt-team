@@ -8,6 +8,7 @@ import AdminLayout from './layouts/AdminLayout';
 import HomePage from './pages/HomePage';
 import HistoryPage from './pages/HistoryPage';
 import PlayersPage from './pages/PlayersPage';
+import PlayerDetailPage from './pages/PlayerDetailPage';
 import MatchesPage from './pages/MatchesPage';
 import MatchDetailPage from './pages/MatchDetailPage';
 import HonorsPage from './pages/HonorsPage';
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/players" element={<PlayersPage />} />
+          <Route path="/players/:id" element={<PlayerDetailPage />} />
           <Route path="/matches" element={<MatchesPage />} />
           <Route path="/matches/:id" element={<MatchDetailPage />} />
           <Route path="/honors" element={<HonorsPage />} />

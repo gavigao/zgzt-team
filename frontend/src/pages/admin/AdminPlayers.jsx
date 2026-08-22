@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { listPlayers, createPlayer, updatePlayer, deletePlayer } from '../../api/admin';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
 
-const EMPTY = { name: '', position: '', jersey_number: '', grade: '', college: '', status: 'active', bio: '', is_captain: false, is_former_captain: false, photo_url: '' };
+const EMPTY = { name: '', position: '', jersey_number: '', grade: '', college: '', status: 'active', bio: '', join_year: '', message: '', is_captain: false, is_former_captain: false, photo_url: '' };
 
 export default function AdminPlayers() {
   const [players, setPlayers] = useState([]);
@@ -24,7 +24,7 @@ export default function AdminPlayers() {
     e.preventDefault();
     setSaving(true);
     try {
-      const data = { ...form, jersey_number: form.jersey_number ? parseInt(form.jersey_number) : null, grade: form.grade ? parseInt(form.grade) : null, is_captain: !!form.is_captain, is_former_captain: !!form.is_former_captain };
+      const data = { ...form, jersey_number: form.jersey_number ? parseInt(form.jersey_number) : null, grade: form.grade ? parseInt(form.grade) : null, join_year: form.join_year ? parseInt(form.join_year) : null, is_captain: !!form.is_captain, is_former_captain: !!form.is_former_captain };
       if (editId) await updatePlayer(editId, data);
       else await createPlayer(data);
       setShowModal(false);
@@ -96,7 +96,9 @@ export default function AdminPlayers() {
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!form.is_captain} onChange={e=>setForm({...form,is_captain:e.target.checked})}/>现任队长</label>
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!form.is_former_captain} onChange={e=>setForm({...form,is_former_captain:e.target.checked})}/>历届队长</label>
               </div>
+              <input className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" placeholder="入队年份（如 2023）" type="number" value={form.join_year} onChange={e=>setForm({...form,join_year:e.target.value})}/>
               <textarea className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" rows={2} placeholder="简介" value={form.bio} onChange={e=>setForm({...form,bio:e.target.value})}/>
+              <textarea className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" rows={2} placeholder="寄语" value={form.message} onChange={e=>setForm({...form,message:e.target.value})}/>
               <button type="submit" disabled={saving} className="w-full py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-red-700 disabled:opacity-50">{saving?'保存中...':'保存'}</button>
             </form>
           </div>
