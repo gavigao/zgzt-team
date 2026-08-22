@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Swords, ChevronLeft } from 'lucide-react';
-import { getMatches, getNews } from '../api/public';
+import { getMatches, getNews, getTeamInfo, getBanners } from '../api/public';
 import MatchCard from '../components/MatchCard';
 import NewsCard from '../components/NewsCard';
 
@@ -18,16 +18,23 @@ export default function HomePage() {
   const [current, setCurrent] = useState(0);
   const [latestMatches, setLatestMatches] = useState([]);
   const [latestNews, setLatestNews] = useState([]);
+  const [banners, setBanners] = useState([]);
+  const [intro, setIntro] = useState(null);
   const [loading, setLoading] = useState(true);
   const timerRef = useRef(null);
+
+  // 轮播图：优先用后台「首页轮播」相册，否则用内置默认图
+  const slides = banners.length > 0
+    ? banners.map(b => ({ src: b.url, alt: b.caption || '首页轮播' }))
+    : SLIDES;
 
   // 自动轮播
   const startTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
-      setCurrent(c => (c + 1) % SLIDES.length);
+      setCurrent(c => (c + 1) % slides.length);
     }, 4000);
-  }, []);
+  }, [slides.length]);
 
   useEffect(() => {
     startTimer();
@@ -39,10 +46,10 @@ export default function HomePage() {
     startTimer(); // 手动切换后重置计时
   };
 
-  const prev = () => goTo((current - 1 + SLIDES.length) % SLIDES.length);
-  const next = () => goTo((current + 1) % SLIDES.length);
+  const prev = () => goTo((current - 1 + slides.length) % slides.length);
+  const next = () => goTo((current + 1) % slides.length);
 
-  // 加载比赛和新闻
+  // 加载比赛、新闻、轮播图和球队介绍
   useEffect(() => {
     Promise.all([
       getMatches({ limit: 3 }),
@@ -51,6 +58,9 @@ export default function HomePage() {
       setLatestMatches(mRes.data.list);
       setLatestNews(nRes.data.list);
     }).catch(() => {}).finally(() => setLoading(false));
+
+    getBanners().then(res => setBanners(res.data || [])).catch(() => {});
+    getTeamInfo('introduction').then(res => { if (res.data) setIntro(res.data); }).catch(() => {});
   }, []);
 
   return (
@@ -58,7 +68,7 @@ export default function HomePage() {
       {/* 全屏轮播 Hero */}
       <section className="relative w-full h-[70vh] min-h-[400px] max-h-[600px] bg-gray-900 overflow-hidden">
         {/* 图片 */}
-        {SLIDES.map((slide, i) => (
+        {slides.map((slide, i) => (
           <div
             key={i}
             className={`absolute inset-0 transition-opacity duration-700 ${
@@ -112,7 +122,7 @@ export default function HomePage() {
 
         {/* 导航圆点 */}
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-          {SLIDES.map((_, i) => (
+          {slides.map((_, i) => (
             <button
               key={i}
               onClick={() => goTo(i)}
@@ -123,6 +133,16 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* 关于我们 / 球队介绍 */}
+      {intro?.content && (
+        <section className="max-w-6xl mx-auto px-4 pt-12">
+          <h2 className="text-xl font-bold text-text-main mb-4">关于我们</h2>
+          <div className="bg-white rounded-2xl card-shadow p-6 text-text-main leading-relaxed whitespace-pre-wrap text-sm">
+            {intro.content}
+          </div>
+        </section>
+      )}
 
       {/* 最新比赛 */}
       <section className="max-w-6xl mx-auto px-4 py-12">

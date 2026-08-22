@@ -3,6 +3,9 @@ import api from './index';
 // ==================== 球队信息 ====================
 export const getTeamInfo = (key) => api.get(`/public/team-info/${key}`);
 
+// 首页轮播图
+export const getBanners = () => api.get('/public/banners');
+
 // ==================== 队员 ====================
 export const getPlayers = (params = {}) => api.get('/public/players', { params });
 export const getPlayerById = (id) => api.get(`/public/players/${id}`);

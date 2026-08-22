@@ -1,8 +1,16 @@
 import { useState, useEffect } from 'react';
 import { getTeamInfo } from '../api/public';
 
+// 默认大事记（后台未编辑时展示）
+const DEFAULT_MILESTONES = [
+  { year: '2019', title: '联队成立', desc: '政府管理学院、国际关系学院、中文学院、统计学院四院联合组建"政国中统联队"，首次参加校联赛' },
+  { year: '2023', title: '新队长上任', desc: '23 级经济统计学专业队员接任队长' },
+  { year: '2026', title: '建队 8 周年', desc: '联队走过八年历程，建立球队网站记录历史' },
+];
+
 export default function HistoryPage() {
   const [history, setHistory] = useState(null);
+  const [milestones, setMilestones] = useState(DEFAULT_MILESTONES);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -10,14 +18,15 @@ export default function HistoryPage() {
       .then(res => setHistory(res.data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
 
-  // 里程碑数据（硬编码展示，配合后端 team_info 中 history key 的富文本内容）
-  const milestones = [
-    { year: '2019', title: '联队成立', desc: '政府管理学院、国际关系学院、中文学院、统计学院四院联合组建"政国中统联队"，首次参加校联赛' },
-    { year: '2023', title: '新队长上任', desc: '23 级经济统计学专业队员接任队长' },
-    { year: '2026', title: '建队 8 周年', desc: '联队走过八年历程，建立球队网站记录历史' },
-  ];
+    getTeamInfo('milestones')
+      .then(res => {
+        if (res.data?.content) {
+          try { setMilestones(JSON.parse(res.data.content)); } catch {}
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
