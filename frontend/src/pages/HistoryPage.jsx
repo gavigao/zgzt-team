@@ -9,16 +9,9 @@ const DEFAULT_MILESTONES = [
 ];
 
 export default function HistoryPage() {
-  const [history, setHistory] = useState(null);
   const [milestones, setMilestones] = useState(DEFAULT_MILESTONES);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getTeamInfo('history')
-      .then(res => setHistory(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-
     getTeamInfo('milestones')
       .then(res => {
         if (res.data?.content) {
@@ -32,19 +25,6 @@ export default function HistoryPage() {
     <div className="max-w-4xl mx-auto px-4 py-10">
       <h1 className="text-2xl font-bold text-text-main mb-2">球队历史</h1>
       <p className="text-text-sub text-sm mb-8">政国中统联队的发展历程</p>
-
-      {/* 从后端获取的历史介绍 */}
-      {loading ? (
-        <div className="skeleton h-32 rounded-2xl mb-8" />
-      ) : history?.content ? (
-        <div className="bg-white rounded-2xl card-shadow p-6 mb-8 prose prose-sm max-w-none text-text-main whitespace-pre-wrap leading-relaxed">
-          {history.content}
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl card-shadow p-6 mb-8 text-center text-text-sub text-sm">
-          球队历史介绍将在后台编辑后展示
-        </div>
-      )}
 
       {/* 时间线 */}
       <h2 className="text-lg font-semibold text-text-main mb-6">大事记</h2>
