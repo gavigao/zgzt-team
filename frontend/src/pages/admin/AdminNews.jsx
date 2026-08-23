@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { listNews, createNews, updateNews, deleteNews } from '../../api/admin';
+import { listNews, createNews, updateNews, deleteNews, uploadImage } from '../../api/admin';
 import { Plus, Edit2, Trash2, X, Eye, FileEdit } from 'lucide-react';
+import ImageUploader from '../../components/ImageUploader';
 
 const EMPTY = { title: '', content: '', summary: '', cover_image: '', is_pinned: false, status: 'draft' };
 
@@ -65,7 +66,21 @@ export default function AdminNews() {
             <form onSubmit={handleSave} className="p-4 space-y-3">
               <input className="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm" placeholder="标题 *" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} required/>
               <input className="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm" placeholder="摘要" value={form.summary} onChange={e=>setForm({...form,summary:e.target.value})}/>
-              <input className="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm" placeholder="封面图 URL" value={form.cover_image} onChange={e=>setForm({...form,cover_image:e.target.value})}/>
+              <div>
+                <p className="text-xs text-text-sub mb-1.5">封面图</p>
+                <ImageUploader
+                  currentUrl={form.cover_image}
+                  previewSize="h-40"
+                  onUpload={async (file) => {
+                    const fd = new FormData();
+                    fd.append('image', file);
+                    const res = await uploadImage(fd);
+                    const url = res.data.url;
+                    setForm({ ...form, cover_image: url });
+                    return url;
+                  }}
+                />
+              </div>
               <textarea className="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm" rows={5} placeholder="正文内容（支持 Markdown）" value={form.content} onChange={e=>setForm({...form,content:e.target.value})}/>
               <div className="flex items-center gap-4">
                 <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!form.is_pinned} onChange={e=>setForm({...form,is_pinned:e.target.checked})}/>置顶</label>
