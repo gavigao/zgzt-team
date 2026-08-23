@@ -15,7 +15,12 @@ export default function HistoryPage() {
     getTeamInfo('milestones')
       .then(res => {
         if (res.data?.content) {
-          try { setMilestones(JSON.parse(res.data.content)); } catch {}
+          try {
+            const parsed = JSON.parse(res.data.content);
+            // 按年份升序排列（早 → 晚）
+            parsed.sort((a, b) => (parseInt(a.year) || 0) - (parseInt(b.year) || 0));
+            setMilestones(parsed);
+          } catch {}
         }
       })
       .catch(() => {});

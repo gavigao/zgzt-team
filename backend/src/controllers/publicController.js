@@ -31,21 +31,6 @@ exports.getTeamInfo = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// 首页轮播图：取标题为「首页轮播」的相册里的照片
-exports.getBanners = async (req, res, next) => {
-  try {
-    const [albums] = await pool.query("SELECT id FROM photo_albums WHERE title = '首页轮播' LIMIT 1");
-    if (albums.length === 0) {
-      return res.json({ code: 200, data: [], message: 'ok' });
-    }
-    const [photos] = await pool.query(
-      'SELECT * FROM photos WHERE album_id = ? ORDER BY sort_order ASC, created_at ASC',
-      [albums[0].id]
-    );
-    res.json({ code: 200, data: photos, message: 'ok' });
-  } catch (err) { next(err); }
-};
-
 // ==================== 队员 ====================
 
 exports.getPlayers = async (req, res, next) => {

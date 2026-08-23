@@ -5,9 +5,6 @@ const ctrl = require('../controllers/publicController');
 // 球队信息
 router.get('/team-info/:key', ctrl.getTeamInfo);
 
-// 首页轮播图
-router.get('/banners', ctrl.getBanners);
-
 // 队员
 router.get('/players', ctrl.getPlayers);
 router.get('/players/:id', ctrl.getPlayerById);
