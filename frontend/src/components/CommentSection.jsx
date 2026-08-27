@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getComments, createComment, deleteComment, toggleLike } from '../api/comments';
 import { Trash2, MessageCircle, Heart } from 'lucide-react';
+import UserAvatar from './UserAvatar';
 
 export default function CommentSection({ matchId }) {
   const { user, isAdmin } = useAuth();
@@ -83,7 +84,9 @@ export default function CommentSection({ matchId }) {
       ) : (
         <div className="space-y-3 mb-6">
           {comments.map(c => (
-            <div key={c.id} className="bg-gray-50 rounded-xl p-3">
+            <div key={c.id} className="bg-gray-50 rounded-xl p-3 flex gap-2.5">
+              <UserAvatar src={c.avatar_url} name={c.username} size="sm" />
+              <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between mb-1">
                 <span className="text-sm font-medium text-text-main">{c.username}</span>
                 <div className="flex items-center gap-2">
@@ -104,6 +107,7 @@ export default function CommentSection({ matchId }) {
                   <Heart size={14} className={c.liked ? 'fill-red-500' : ''} />
                   <span>{c.like_count || 0}</span>
                 </button>
+              </div>
               </div>
             </div>
           ))}

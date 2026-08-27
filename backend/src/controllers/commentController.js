@@ -5,7 +5,7 @@ exports.getComments = async (req, res, next) => {
   try {
     const userId = req.user?.id || 0;
     const [rows] = await pool.query(
-      'SELECT c.*, u.username, EXISTS(SELECT 1 FROM comment_likes cl WHERE cl.comment_id = c.id AND cl.user_id = ?) AS liked FROM comments c JOIN users u ON c.user_id = u.id WHERE c.match_id = ? ORDER BY c.created_at DESC',
+      'SELECT c.*, u.username, u.avatar_url, EXISTS(SELECT 1 FROM comment_likes cl WHERE cl.comment_id = c.id AND cl.user_id = ?) AS liked FROM comments c JOIN users u ON c.user_id = u.id WHERE c.match_id = ? ORDER BY c.created_at DESC',
       [userId, req.params.matchId]
     );
     res.json({ code: 200, data: rows, message: 'ok' });
@@ -38,7 +38,7 @@ exports.createComment = async (req, res, next) => {
 
     // 返回新建的评论（含用户名）
     const [newComment] = await pool.query(
-      'SELECT c.*, u.username FROM comments c JOIN users u ON c.user_id = u.id WHERE c.id = ?',
+      'SELECT c.*, u.username, u.avatar_url FROM comments c JOIN users u ON c.user_id = u.id WHERE c.id = ?',
       [result.insertId]
     );
 
@@ -56,7 +56,7 @@ exports.deleteComment = async (req, res, next) => {
 
     const comment = rows[0];
     // 只能删除自己的评论，管理员可以删任意
-    if (comment.user_id !== req.user.id && req.user.role !== 'admin') {
+    if (comment.user_id !== req.user.id && !['owner', 'admin'].includes(req.user.role)) {
       return res.status(403).json({ code: 403, data: null, message: '无权删除他人评论' });
     }
 

@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS users (
   username VARCHAR(20) DEFAULT NULL COMMENT '公开用户名，可重复、可修改',
   email VARCHAR(100) DEFAULT NULL,
   password_hash VARCHAR(255) NOT NULL,
-  role ENUM('admin', 'player') NOT NULL DEFAULT 'player',
+  avatar_url VARCHAR(500) DEFAULT NULL COMMENT '社区头像',
+  role ENUM('owner', 'admin', 'player') NOT NULL DEFAULT 'player',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_role (role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -193,4 +194,43 @@ CREATE TABLE IF NOT EXISTS training_schedules (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_schedule_date (schedule_date),
   FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- =====================
+-- 12. 留言板帖子
+-- =====================
+CREATE TABLE IF NOT EXISTS board_posts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  title VARCHAR(120) NOT NULL,
+  content TEXT NOT NULL,
+  like_count INT NOT NULL DEFAULT 0,
+  comment_count INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_board_posts_created_at (created_at),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 留言板帖子点赞（只公开数量，不提供点赞者列表）
+CREATE TABLE IF NOT EXISTS board_post_likes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  post_id INT NOT NULL,
+  user_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_board_post_user (post_id, user_id),
+  FOREIGN KEY (post_id) REFERENCES board_posts(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 留言板评论
+CREATE TABLE IF NOT EXISTS board_comments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  post_id INT NOT NULL,
+  user_id INT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_board_comments_post (post_id, created_at),
+  FOREIGN KEY (post_id) REFERENCES board_posts(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const ctrl = require('../controllers/adminController');
 const { authenticate } = require('../middleware/auth');
-const requireAdmin = require('../middleware/admin');
+const { requireAdmin, requireOwner } = require('../middleware/admin');
 const upload = require('../middleware/upload');
 
 // 所有 admin 路由都需要登录 + 管理员
@@ -55,8 +55,8 @@ router.put('/training/:id', ctrl.updateTraining);
 router.delete('/training/:id', ctrl.deleteTraining);
 
 // 用户管理
-router.get('/users', ctrl.listUsers);
-router.put('/users/:id/role', ctrl.updateUserRole);
+router.get('/users', requireOwner, ctrl.listUsers);
+router.put('/users/:id/role', requireOwner, ctrl.updateUserRole);
 
 // 球队设置
 router.put('/team-info/:key', ctrl.updateTeamInfo);

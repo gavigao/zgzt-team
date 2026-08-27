@@ -44,8 +44,11 @@ export default function MatchCard({ match }) {
                 {match.opponent_score}
               </span>
             </div>
-          ) : (
-            <span className="text-sm text-text-sub">VS</span>
+        ) : (
+            <div>
+              <span className="text-lg font-semibold text-secondary">VS</span>
+              <span className="text-xs text-secondary font-medium mt-1 block">待赛</span>
+            </div>
           )}
           {isWin && hasScore && (
             <span className="text-xs text-primary font-medium mt-1 block">胜利</span>

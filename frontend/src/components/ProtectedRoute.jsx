@@ -58,3 +58,14 @@ export function AdminRoute({ children }) {
 
   return children;
 }
+
+// 仅总负责人可访问（例如任命或撤销管理员）。
+export function OwnerRoute({ children }) {
+  const { user, isOwner, loading } = useAuth();
+
+  if (loading) return <LoadingScreen />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!isOwner) return <Navigate to="/admin" replace />;
+
+  return children;
+}

@@ -15,13 +15,13 @@ const ADMIN_MENU = [
   { to: '/admin/honors', label: '荣誉管理', icon: Trophy },
   { to: '/admin/photos', label: '照片管理', icon: Images },
   { to: '/admin/training', label: '训练管理', icon: CalendarDays },
-  { to: '/admin/users', label: '用户管理', icon: UserCog },
+  { to: '/admin/users', label: '管理员管理', icon: UserCog, ownerOnly: true },
   { to: '/admin/settings', label: '网站设置', icon: Settings },
 ];
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, isOwner } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -62,7 +62,7 @@ export default function AdminLayout() {
 
         {/* 菜单 */}
         <nav className="flex-1 py-3 px-3 space-y-1 overflow-y-auto">
-          {ADMIN_MENU.map(({ to, label, icon: Icon, end }) => (
+          {ADMIN_MENU.filter(item => !item.ownerOnly || isOwner).map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}

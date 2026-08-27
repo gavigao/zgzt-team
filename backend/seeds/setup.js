@@ -48,7 +48,7 @@ async function setup() {
   const passwordHash = await bcrypt.hash('admin123', 12);
   await pool.execute(
     'INSERT IGNORE INTO users (account, username, email, password_hash, role) VALUES (?, ?, ?, ?, ?)',
-    ['admin', 'admin', 'admin@zgzt.team', passwordHash, 'admin']
+    ['admin', 'admin', 'admin@zgzt.team', passwordHash, 'owner']
   );
   console.log('  管理员登录账号: admin / admin123');
 

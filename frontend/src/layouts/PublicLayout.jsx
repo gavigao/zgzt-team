@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, ChevronDown, LogOut, Shield, User, Pencil } from 'lucide-react';
+import { Menu, X, ChevronDown, LogOut, Shield, Pencil } from 'lucide-react';
+import UserAvatar from '../components/UserAvatar';
 
 const NAV_ITEMS = [
   { to: '/', label: '首页' },
@@ -12,6 +13,7 @@ const NAV_ITEMS = [
   { to: '/news', label: '新闻' },
   { to: '/photos', label: '照片墙' },
   { to: '/training', label: '训练' },
+  { to: '/board', label: '留言板' },
 ];
 
 export default function PublicLayout() {
@@ -73,9 +75,7 @@ export default function PublicLayout() {
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-700 hover:text-primary transition-colors"
                 >
-                  <div className="w-6 h-6 rounded-full bg-secondary/10 flex items-center justify-center">
-                    <User size={13} className="text-secondary" />
-                  </div>
+                  <UserAvatar src={user.avatar_url} name={user.username} size="sm" />
                   <span className="max-w-[80px] truncate">{user.username || user.account}</span>
                   <ChevronDown size={14} className="text-gray-400" />
                 </button>
@@ -155,9 +155,7 @@ export default function PublicLayout() {
               {user ? (
                 <>
                   <div className="px-3 py-2 text-sm text-gray-500 flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-secondary/10 flex items-center justify-center">
-                      <User size={13} className="text-secondary" />
-                    </div>
+                    <UserAvatar src={user.avatar_url} name={user.username} size="sm" />
                     {user.username || user.account}
                     {isAdmin && <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded font-medium">管理员</span>}
                   </div>

@@ -77,6 +77,7 @@ export default function AdminMatches() {
                 <input className="px-3 py-2 bg-gray-50 border rounded-xl text-sm" type="number" placeholder="我方得分" value={form.our_score} onChange={e=>setForm({...form,our_score:e.target.value})}/>
                 <input className="px-3 py-2 bg-gray-50 border rounded-xl text-sm" type="number" placeholder="对方得分" value={form.opponent_score} onChange={e=>setForm({...form,opponent_score:e.target.value})}/>
               </div>
+              <p className="text-xs text-text-sub">录入未来赛程时，双方得分都留空；比赛结束后再回来补比分和总结。</p>
               <textarea className="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm" rows={3} placeholder="赛后总结（支持 Markdown）" value={form.summary} onChange={e=>setForm({...form,summary:e.target.value})}/>
               <button type="submit" disabled={saving} className="w-full py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-red-700 disabled:opacity-50">{saving?'保存中...':'保存'}</button>
             </form>

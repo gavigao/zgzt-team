@@ -26,6 +26,7 @@ function publicUser(user) {
     account: user.account,
     username: user.username,
     email: user.email ?? null,
+    avatar_url: user.avatar_url ?? null,
     role: user.role,
   };
 }
@@ -33,7 +34,7 @@ function publicUser(user) {
 // 生成 JWT。用户名可修改，所以不写入令牌。
 function generateToken(user) {
   return jwt.sign(
-    { sub: user.id, role: user.role },
+    { sub: user.id },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRY }
   );
@@ -73,7 +74,7 @@ exports.register = async (req, res, next) => {
       [account, passwordHash, 'player']
     );
 
-    const user = { id: result.insertId, account, username: null, email: null, role: 'player' };
+    const user = { id: result.insertId, account, username: null, email: null, avatar_url: null, role: 'player' };
     const token = generateToken(user);
 
     res.status(201).json({
@@ -101,7 +102,7 @@ exports.login = async (req, res, next) => {
     }
 
     const [rows] = await pool.execute(
-      'SELECT id, account, username, email, password_hash, role FROM users WHERE account = ?',
+      'SELECT id, account, username, email, avatar_url, password_hash, role FROM users WHERE account = ?',
       [account]
     );
 
@@ -132,7 +133,7 @@ exports.login = async (req, res, next) => {
 exports.getMe = async (req, res, next) => {
   try {
     const [rows] = await pool.execute(
-      'SELECT id, account, username, email, role, created_at FROM users WHERE id = ?',
+      'SELECT id, account, username, email, avatar_url, role, created_at FROM users WHERE id = ?',
       [req.user.id]
     );
 
@@ -164,10 +165,36 @@ exports.updateUsername = async (req, res, next) => {
     }
 
     const [rows] = await pool.execute(
-      'SELECT id, account, username, email, role, created_at FROM users WHERE id = ?',
+      'SELECT id, account, username, email, avatar_url, role, created_at FROM users WHERE id = ?',
       [req.user.id]
     );
     res.json({ code: 200, data: rows[0], message: '用户名更新成功' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// 上传或更换社区头像
+exports.updateAvatar = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ code: 400, data: null, message: '请选择头像图片' });
+    }
+
+    const avatarUrl = `/uploads/${req.file.filename}`;
+    const [result] = await pool.execute(
+      'UPDATE users SET avatar_url = ? WHERE id = ?',
+      [avatarUrl, req.user.id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ code: 404, data: null, message: '用户不存在' });
+    }
+
+    const [rows] = await pool.execute(
+      'SELECT id, account, username, email, avatar_url, role, created_at FROM users WHERE id = ?',
+      [req.user.id]
+    );
+    res.json({ code: 200, data: rows[0], message: '头像更新成功' });
   } catch (err) {
     next(err);
   }

@@ -350,7 +350,7 @@ exports.deleteTraining = async (req, res, next) => {
 exports.listUsers = async (req, res, next) => {
   try {
     const [rows] = await pool.query(
-      'SELECT id, account, username, email, role, created_at FROM users ORDER BY created_at DESC'
+      'SELECT id, account, username, email, avatar_url, role, created_at FROM users ORDER BY created_at DESC'
     );
     res.json({ code: 200, data: rows, message: 'ok' });
   } catch (err) { next(err); }
@@ -366,6 +366,14 @@ exports.updateUserRole = async (req, res, next) => {
     if (parseInt(req.params.id) === req.user.id) {
       return res.status(400).json({ code: 400, data: null, message: '不能修改自己的角色' });
     }
+    const [users] = await pool.query('SELECT id, role FROM users WHERE id = ?', [req.params.id]);
+    if (users.length === 0) {
+      return res.status(404).json({ code: 404, data: null, message: '用户不存在' });
+    }
+    if (users[0].role === 'owner') {
+      return res.status(403).json({ code: 403, data: null, message: '不能修改总负责人的角色' });
+    }
+
     const [result] = await pool.query('UPDATE users SET role = ? WHERE id = ?', [role, req.params.id]);
     if (result.affectedRows === 0) return res.status(404).json({ code: 404, data: null, message: '用户不存在' });
     res.json({ code: 200, data: null, message: '角色更新成功' });

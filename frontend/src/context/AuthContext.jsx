@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { loginApi, registerApi, getMeApi, updateUsernameApi } from '../api/auth';
+import { loginApi, registerApi, getMeApi, updateUsernameApi, updateAvatarApi } from '../api/auth';
 
 const AuthContext = createContext(null);
 
@@ -46,15 +46,24 @@ export function AuthProvider({ children }) {
     return res.data;
   }, []);
 
+  const updateAvatar = useCallback(async (file) => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const res = await updateAvatarApi(formData);
+    setUser(res.data);
+    return res.data;
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     setUser(null);
   }, []);
 
-  const isAdmin = user?.role === 'admin';
+  const isOwner = user?.role === 'owner';
+  const isAdmin = isOwner || user?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, updateUsername, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, loading, login, register, updateUsername, updateAvatar, logout, isAdmin, isOwner }}>
       {children}
     </AuthContext.Provider>
   );

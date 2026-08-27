@@ -13,8 +13,14 @@ const storage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (_req, file, cb) => {
-    // 时间戳 + 随机数 + 原扩展名，避免重名
-    const ext = path.extname(file.originalname);
+    // 扩展名由已允许的 MIME 类型决定，不信任用户提供的原始文件名。
+    const extensions = {
+      'image/jpeg': '.jpg',
+      'image/png': '.png',
+      'image/gif': '.gif',
+      'image/webp': '.webp',
+    };
+    const ext = extensions[file.mimetype];
     const basename = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, basename + ext);
   },

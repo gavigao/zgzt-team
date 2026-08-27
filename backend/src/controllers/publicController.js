@@ -78,18 +78,31 @@ exports.getSeasons = async (req, res, next) => {
 
 exports.getMatches = async (req, res, next) => {
   try {
-    const { season, page, limit } = req.query;
+    const { season, scope, page, limit } = req.query;
     const filters = [];
     const values = [];
+    let orderBy = `
+      CASE WHEN m.match_date >= CURDATE() AND (m.our_score IS NULL OR m.opponent_score IS NULL) THEN 0 ELSE 1 END ASC,
+      CASE WHEN m.match_date >= CURDATE() AND (m.our_score IS NULL OR m.opponent_score IS NULL) THEN m.match_date END ASC,
+      m.match_date DESC
+    `;
 
     if (season) { filters.push('m.season_id = ?'); values.push(season); }
+    if (scope === 'upcoming') {
+      filters.push('m.match_date >= CURDATE()');
+      filters.push('(m.our_score IS NULL OR m.opponent_score IS NULL)');
+      orderBy = 'm.match_date ASC';
+    } else if (scope === 'completed') {
+      filters.push('(m.match_date < CURDATE() OR (m.our_score IS NOT NULL AND m.opponent_score IS NOT NULL))');
+      orderBy = 'm.match_date DESC';
+    }
 
     const result = await paginatedQuery({
       baseTable: 'matches m',
       joins: 'LEFT JOIN seasons s ON m.season_id = s.id',
       filters,
       filterValues: values,
-      orderBy: 'm.match_date DESC',
+      orderBy,
       page, limit,
       selectFields: 'm.*, s.name as season_name',
     });
@@ -110,7 +123,7 @@ exports.getMatchById = async (req, res, next) => {
 
     // 附带评论
     const [commentRows] = await pool.query(
-      'SELECT c.*, u.username FROM comments c JOIN users u ON c.user_id = u.id WHERE c.match_id = ? ORDER BY c.created_at DESC',
+      'SELECT c.*, u.username, u.avatar_url FROM comments c JOIN users u ON c.user_id = u.id WHERE c.match_id = ? ORDER BY c.created_at DESC',
       [req.params.id]
     );
 
@@ -209,15 +222,27 @@ exports.getAlbumPhotos = async (req, res, next) => {
 
 exports.getTrainingSchedules = async (req, res, next) => {
   try {
-    const { status } = req.query;
+    const { status, upcoming, limit } = req.query;
     let sql = 'SELECT * FROM training_schedules';
     const params = [];
+    const filters = [];
 
     if (status) {
-      sql += ' WHERE status = ?';
+      filters.push('status = ?');
       params.push(status);
     }
-    sql += ' ORDER BY schedule_date DESC';
+    if (upcoming === '1') {
+      filters.push('schedule_date >= CURDATE()');
+      filters.push("status = 'upcoming'");
+    }
+    if (filters.length > 0) sql += ` WHERE ${filters.join(' AND ')}`;
+
+    sql += upcoming === '1'
+      ? ' ORDER BY schedule_date ASC, start_time ASC'
+      : ' ORDER BY schedule_date DESC, start_time DESC';
+
+    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 0, 0), 20);
+    if (parsedLimit > 0) sql += ` LIMIT ${parsedLimit}`;
 
     const [rows] = await pool.query(sql, params);
     res.json({ code: 200, data: rows, message: 'ok' });

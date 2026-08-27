@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { ProtectedRoute, AdminRoute, OnboardingRoute } from './components/ProtectedRoute';
+import { ProtectedRoute, AdminRoute, OnboardingRoute, OwnerRoute } from './components/ProtectedRoute';
 import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
 
@@ -21,6 +21,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import WelcomePage from './pages/WelcomePage';
 import ProfilePage from './pages/ProfilePage';
+import BoardPage from './pages/BoardPage';
 
 // 管理后台页面
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -53,6 +54,7 @@ export default function App() {
           <Route path="/photos" element={<PhotosPage />} />
           <Route path="/photos/:albumId" element={<PhotoAlbumPage />} />
           <Route path="/training" element={<TrainingPage />} />
+          <Route path="/board" element={<BoardPage />} />
         </Route>
 
         {/* 登录/注册（独立布局，无导航栏） */}
@@ -97,7 +99,7 @@ export default function App() {
           <Route path="honors" element={<AdminHonors />} />
           <Route path="photos" element={<AdminPhotos />} />
           <Route path="training" element={<AdminTraining />} />
-          <Route path="users" element={<AdminUsers />} />
+          <Route path="users" element={<OwnerRoute><AdminUsers /></OwnerRoute>} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
       </Routes>

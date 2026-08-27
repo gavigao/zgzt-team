@@ -1,38 +1,74 @@
 const jwt = require('jsonwebtoken');
+const pool = require('../db/index');
 const { JWT_SECRET } = require('../config/auth');
 
-// 强制认证 — 未登录返回 401
-function authenticate(req, res, next) {
+async function findCurrentUser(payload) {
+  const userId = Number(payload.sub);
+  if (!Number.isInteger(userId) || userId <= 0) return null;
+
+  const [rows] = await pool.execute(
+    'SELECT id, role, username FROM users WHERE id = ?',
+    [userId]
+  );
+  return rows[0] || null;
+}
+
+// 需要公开互动的接口必须先完成用户名设置，避免绕过首次登录引导。
+function requireProfile(req, res, next) {
+  if (!req.user?.username?.trim()) {
+    return res.status(409).json({
+      code: 409,
+      data: null,
+      message: '请先为账户设置用户名'
+    });
+  }
+  next();
+}
+
+// 强制认证。角色从数据库实时读取，撤销管理员权限后立即生效。
+async function authenticate(req, res, next) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) {
     return res.status(401).json({ code: 401, data: null, message: '请先登录' });
   }
 
-  const token = header.split(' ')[1];
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    req.user = { id: payload.sub, role: payload.role };
+    const payload = jwt.verify(header.slice(7), JWT_SECRET);
+    const user = await findCurrentUser(payload);
+    if (!user) {
+      return res.status(401).json({ code: 401, data: null, message: '用户不存在或已被移除' });
+    }
+    req.user = user;
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({ code: 401, data: null, message: '登录已过期，请重新登录' });
     }
-    return res.status(401).json({ code: 401, data: null, message: '无效的登录凭证' });
-  }
-}
-
-// 可选认证 — 有 token 就解析，没有也放行
-function optionalAuth(req, _res, next) {
-  const header = req.headers.authorization;
-  if (header && header.startsWith('Bearer ')) {
-    try {
-      const payload = jwt.verify(header.split(' ')[1], JWT_SECRET);
-      req.user = { id: payload.sub, role: payload.role };
-    } catch {
-      // token 无效也放行，req.user 为 undefined
+    if (err.name === 'JsonWebTokenError') {
+      return res.status(401).json({ code: 401, data: null, message: '无效的登录凭证' });
     }
+    next(err);
   }
-  next();
 }
 
-module.exports = { authenticate, optionalAuth };
+// 可选认证：无 token 或 token 无效时按访客处理。
+async function optionalAuth(req, _res, next) {
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) {
+    return next();
+  }
+
+  try {
+    const payload = jwt.verify(header.slice(7), JWT_SECRET);
+    const user = await findCurrentUser(payload);
+    if (user) req.user = user;
+    next();
+  } catch (err) {
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return next();
+    }
+    next(err);
+  }
+}
+
+module.exports = { authenticate, optionalAuth, requireProfile };
