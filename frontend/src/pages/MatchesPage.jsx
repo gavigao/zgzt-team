@@ -30,9 +30,6 @@ export default function MatchesPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-text-main mb-2">赛程与比赛</h1>
-      <p className="text-text-sub text-sm mb-6">未来赛程会排在前面，已结束比赛继续保留完整战绩</p>
-
       {/* 赛季筛选 */}
       <div className="flex gap-2 mb-6 flex-wrap">
         <button

@@ -17,8 +17,7 @@ const SLIDES = [
 export default function HomePage() {
   const [current, setCurrent] = useState(0);
   const [training, setTraining] = useState([]);
-  const [upcomingMatches, setUpcomingMatches] = useState([]);
-  const [recentMatches, setRecentMatches] = useState([]);
+  const [matches, setMatches] = useState([]);
   const [latestNews, setLatestNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const timerRef = useRef(null);
@@ -43,14 +42,12 @@ export default function HomePage() {
   useEffect(() => {
     Promise.all([
       getTrainingSchedules({ upcoming: 1, limit: 3 }),
-      getMatches({ scope: 'upcoming', limit: 3 }),
-      getMatches({ scope: 'completed', limit: 3 }),
+      getMatches({ limit: 6 }),
       getNews({ limit: 3 }),
     ])
-      .then(([trainingRes, upcomingRes, recentRes, newsRes]) => {
+      .then(([trainingRes, matchesRes, newsRes]) => {
         setTraining(trainingRes.data);
-        setUpcomingMatches(upcomingRes.data.list);
-        setRecentMatches(recentRes.data.list);
+        setMatches(matchesRes.data.list);
         setLatestNews(newsRes.data.list);
       })
       .catch(() => {})
@@ -92,7 +89,7 @@ export default function HomePage() {
             <p className="text-xs text-gray-300 drop-shadow">政府管理学院 · 国际关系学院 · 中文学院 · 统计学院</p>
             <div className="mt-5 flex items-center justify-center gap-3 flex-wrap">
               <Link to="/matches" className="px-5 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-red-700 shadow-lg flex items-center gap-1.5">
-                <Swords size={16} /> 赛程与比赛
+                <Swords size={16} /> 赛程安排
               </Link>
               <Link to="/board" className="px-5 py-2 bg-white/15 backdrop-blur-sm text-white text-sm font-medium rounded-xl hover:bg-white/25 border border-white/20 flex items-center gap-1">
                 去留言板 <ChevronRight size={16} />
@@ -134,7 +131,7 @@ export default function HomePage() {
       <section className="max-w-6xl mx-auto px-4 py-12">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-text-main flex items-center gap-2">
-            <Swords size={20} className="text-primary" /> 赛程与比赛
+            <Swords size={20} className="text-primary" /> 赛程安排
           </h2>
           <Link to="/matches" className="text-sm text-secondary hover:underline flex items-center gap-1">
             全部比赛 <ChevronRight size={14} />
@@ -143,25 +140,10 @@ export default function HomePage() {
 
         {loading ? (
           <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="skeleton h-28 rounded-2xl" />)}</div>
+        ) : matches.length === 0 ? (
+          <div className="bg-white rounded-2xl card-shadow p-8 text-center text-sm text-text-sub">暂时没有赛程记录</div>
         ) : (
-          <div className="grid lg:grid-cols-2 gap-6">
-            <div>
-              <h3 className="text-sm font-semibold text-text-main mb-3">📅 接下来踢谁</h3>
-              {upcomingMatches.length === 0 ? (
-                <div className="bg-white rounded-2xl card-shadow p-7 text-center text-sm text-text-sub">未来赛程还没有录入</div>
-              ) : (
-                <div className="space-y-3">{upcomingMatches.map(match => <MatchCard key={match.id} match={match} />)}</div>
-              )}
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-text-main mb-3">🏁 最近战绩</h3>
-              {recentMatches.length === 0 ? (
-                <div className="bg-white rounded-2xl card-shadow p-7 text-center text-sm text-text-sub">暂无已结束的比赛</div>
-              ) : (
-                <div className="space-y-3">{recentMatches.map(match => <MatchCard key={match.id} match={match} />)}</div>
-              )}
-            </div>
-          </div>
+          <div className="space-y-3">{matches.map(match => <MatchCard key={match.id} match={match} />)}</div>
         )}
       </section>
 

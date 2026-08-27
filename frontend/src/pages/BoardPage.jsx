@@ -208,10 +208,9 @@ export default function BoardPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       <h1 className="text-2xl font-bold text-text-main">球队留言板</h1>
-      <p className="text-sm text-text-sub mt-1 mb-6">聊比赛、约球、整活都可以。点赞只显示数量，评论会显示用户名。</p>
 
       {user ? (
-        <form onSubmit={handleCreate} className="bg-white rounded-2xl card-shadow p-5 mb-6 space-y-3">
+        <form onSubmit={handleCreate} className="bg-white rounded-2xl card-shadow p-5 mt-6 mb-6 space-y-3">
           <div className="flex items-center gap-3">
             <UserAvatar src={user.avatar_url} name={user.username} />
             <div>
@@ -246,7 +245,7 @@ export default function BoardPage() {
           </div>
         </form>
       ) : (
-        <div className="bg-white rounded-2xl card-shadow p-5 mb-6 text-center text-sm text-text-sub">
+        <div className="bg-white rounded-2xl card-shadow p-5 mt-6 mb-6 text-center text-sm text-text-sub">
           先随便看看，想发帖时再 <Link to="/login" className="text-secondary hover:underline">登录</Link>
         </div>
       )}
