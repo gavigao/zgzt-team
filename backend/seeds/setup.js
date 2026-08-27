@@ -47,10 +47,10 @@ async function setup() {
   console.log('3/3 填充种子数据...');
   const passwordHash = await bcrypt.hash('admin123', 12);
   await pool.execute(
-    'INSERT IGNORE INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
-    ['admin', 'admin@zgzt.team', passwordHash, 'admin']
+    'INSERT IGNORE INTO users (account, username, email, password_hash, role) VALUES (?, ?, ?, ?, ?)',
+    ['admin', 'admin', 'admin@zgzt.team', passwordHash, 'admin']
   );
-  console.log('  管理员账号: admin / admin123');
+  console.log('  管理员登录账号: admin / admin123');
 
   const seasons = [
     '2019-2020', '2020-2021', '2021-2022', '2022-2023',

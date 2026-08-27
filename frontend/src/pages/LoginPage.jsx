@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
+  const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -18,15 +18,15 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
 
-    if (!username.trim() || !password.trim()) {
-      setError('请填写用户名和密码');
+    if (!account.trim() || !password) {
+      setError('请填写账号和密码');
       return;
     }
 
     setSubmitting(true);
     try {
-      await login(username.trim(), password);
-      navigate(from, { replace: true });
+      const loggedInUser = await login(account.trim(), password);
+      navigate(loggedInUser.username ? from : '/welcome', { replace: true });
     } catch (err) {
       setError(err.message || '登录失败，请重试');
     } finally {
@@ -53,15 +53,16 @@ export default function LoginPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-text-main mb-1.5">用户名</label>
+            <label className="block text-sm font-medium text-text-main mb-1.5">账号</label>
             <input
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={account}
+              onChange={(e) => setAccount(e.target.value)}
               className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm
                 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-              placeholder="请输入用户名"
+              placeholder="请输入注册时设置的账号"
               autoFocus
+              autoComplete="username"
             />
           </div>
 
@@ -74,6 +75,7 @@ export default function LoginPage() {
               className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm
                 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
               placeholder="请输入密码"
+              autoComplete="current-password"
             />
           </div>
 

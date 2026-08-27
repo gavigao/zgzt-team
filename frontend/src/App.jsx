@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
+import { ProtectedRoute, AdminRoute, OnboardingRoute } from './components/ProtectedRoute';
 import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
 
@@ -19,6 +19,8 @@ import PhotoAlbumPage from './pages/PhotoAlbumPage';
 import TrainingPage from './pages/TrainingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import WelcomePage from './pages/WelcomePage';
+import ProfilePage from './pages/ProfilePage';
 
 // 管理后台页面
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -38,7 +40,7 @@ export default function App() {
     <AuthProvider>
       <Routes>
         {/* 公开前台页面 */}
-        <Route element={<PublicLayout />}>
+        <Route element={<OnboardingRoute><PublicLayout /></OnboardingRoute>}>
           <Route path="/" element={<HomePage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/players" element={<PlayersPage />} />
@@ -56,6 +58,24 @@ export default function App() {
         {/* 登录/注册（独立布局，无导航栏） */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+
+        {/* 新用户引导与账户资料 */}
+        <Route
+          path="/welcome"
+          element={
+            <ProtectedRoute>
+              <WelcomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* 管理后台（需登录 + 管理员） — Phase 5 实现 */}
         <Route

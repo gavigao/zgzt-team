@@ -350,7 +350,7 @@ exports.deleteTraining = async (req, res, next) => {
 exports.listUsers = async (req, res, next) => {
   try {
     const [rows] = await pool.query(
-      'SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC'
+      'SELECT id, account, username, email, role, created_at FROM users ORDER BY created_at DESC'
     );
     res.json({ code: 200, data: rows, message: 'ok' });
   } catch (err) { next(err); }

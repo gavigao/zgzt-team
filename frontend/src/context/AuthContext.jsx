@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { loginApi, registerApi, getMeApi } from '../api/auth';
+import { loginApi, registerApi, getMeApi, updateUsernameApi } from '../api/auth';
 
 const AuthContext = createContext(null);
 
@@ -26,18 +26,24 @@ export function AuthProvider({ children }) {
       });
   }, []);
 
-  const login = useCallback(async (username, password) => {
-    const res = await loginApi(username, password);
+  const login = useCallback(async (account, password) => {
+    const res = await loginApi(account, password);
     localStorage.setItem('token', res.data.token);
     setUser(res.data.user);
     return res.data.user;
   }, []);
 
-  const register = useCallback(async (username, password, email) => {
-    const res = await registerApi(username, password, email);
+  const register = useCallback(async (account, password) => {
+    const res = await registerApi(account, password);
     localStorage.setItem('token', res.data.token);
     setUser(res.data.user);
     return res.data.user;
+  }, []);
+
+  const updateUsername = useCallback(async (username) => {
+    const res = await updateUsernameApi(username);
+    setUser(res.data);
+    return res.data;
   }, []);
 
   const logout = useCallback(() => {
@@ -48,7 +54,7 @@ export function AuthProvider({ children }) {
   const isAdmin = user?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, loading, login, register, updateUsername, logout, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

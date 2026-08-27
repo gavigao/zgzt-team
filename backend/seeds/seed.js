@@ -8,10 +8,10 @@ async function seed() {
   // 创建默认管理员: admin / admin123
   const passwordHash = await bcrypt.hash('admin123', 12);
   await pool.execute(
-    'INSERT IGNORE INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)',
-    ['admin', 'admin@zgzt.team', passwordHash, 'admin']
+    'INSERT IGNORE INTO users (account, username, email, password_hash, role) VALUES (?, ?, ?, ?, ?)',
+    ['admin', 'admin', 'admin@zgzt.team', passwordHash, 'admin']
   );
-  console.log('  管理员账号: admin / admin123');
+  console.log('  管理员登录账号: admin / admin123');
 
   // 插入几个示例赛季
   const seasons = [

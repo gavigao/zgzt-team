@@ -11,7 +11,7 @@ function authenticate(req, res, next) {
   const token = header.split(' ')[1];
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    req.user = { id: payload.sub, role: payload.role, username: payload.username };
+    req.user = { id: payload.sub, role: payload.role };
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
@@ -27,7 +27,7 @@ function optionalAuth(req, _res, next) {
   if (header && header.startsWith('Bearer ')) {
     try {
       const payload = jwt.verify(header.split(' ')[1], JWT_SECRET);
-      req.user = { id: payload.sub, role: payload.role, username: payload.username };
+      req.user = { id: payload.sub, role: payload.role };
     } catch {
       // token 无效也放行，req.user 为 undefined
     }

@@ -3,10 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function RegisterPage() {
-  const [username, setUsername] = useState('');
+  const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { register } = useAuth();
@@ -16,23 +15,28 @@ export default function RegisterPage() {
     e.preventDefault();
     setError('');
 
-    if (!username.trim() || !password.trim()) {
-      setError('请填写用户名和密码');
+    const normalizedAccount = account.trim().toLowerCase();
+    if (!normalizedAccount || !password) {
+      setError('请填写账号和密码');
+      return;
+    }
+    if (!/^[a-z0-9_-]{4,32}$/.test(normalizedAccount)) {
+      setError('账号需要 4-32 位，只能使用字母、数字、下划线或短横线');
       return;
     }
     if (password !== confirmPassword) {
       setError('两次输入的密码不一致');
       return;
     }
-    if (password.length < 6) {
-      setError('密码至少需要 6 个字符');
+    if (password.length < 8) {
+      setError('密码至少需要 8 个字符');
       return;
     }
 
     setSubmitting(true);
     try {
-      await register(username.trim(), password, email.trim() || null);
-      navigate('/', { replace: true });
+      await register(normalizedAccount, password);
+      navigate('/welcome', { replace: true });
     } catch (err) {
       setError(err.message || '注册失败，请重试');
     } finally {
@@ -59,27 +63,16 @@ export default function RegisterPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-text-main mb-1.5">用户名</label>
+            <label className="block text-sm font-medium text-text-main mb-1.5">账号</label>
             <input
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={account}
+              onChange={(e) => setAccount(e.target.value)}
               className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm
                 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-              placeholder="2-20 个字符"
+              placeholder="手机号、QQ号或容易记住的账号"
               autoFocus
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-text-main mb-1.5">邮箱（选填）</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm
-                focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-              placeholder="用于找回密码"
+              autoComplete="username"
             />
           </div>
 
@@ -91,7 +84,8 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm
                 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-              placeholder="至少 6 个字符"
+              placeholder="至少 8 个字符"
+              autoComplete="new-password"
             />
           </div>
 
@@ -104,6 +98,7 @@ export default function RegisterPage() {
               className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm
                 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
               placeholder="再次输入密码"
+              autoComplete="new-password"
             />
           </div>
 

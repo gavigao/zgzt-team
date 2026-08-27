@@ -12,7 +12,8 @@ USE zgzt_team;
 -- =====================
 CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(20) NOT NULL UNIQUE,
+  account VARCHAR(32) NOT NULL UNIQUE COMMENT '唯一登录账号',
+  username VARCHAR(20) DEFAULT NULL COMMENT '公开用户名，可重复、可修改',
   email VARCHAR(100) DEFAULT NULL,
   password_hash VARCHAR(255) NOT NULL,
   role ENUM('admin', 'player') NOT NULL DEFAULT 'player',
