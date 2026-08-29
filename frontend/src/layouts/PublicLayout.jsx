@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, ChevronDown, LogOut, Shield, Pencil } from 'lucide-react';
+import { CircleDot, Menu, X, ChevronDown, LogOut, Shield, Pencil } from 'lucide-react';
 import UserAvatar from '../components/UserAvatar';
 
 const NAV_ITEMS = [
@@ -35,7 +35,7 @@ export default function PublicLayout() {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           {/* 队名/Logo */}
           <Link to="/" className="flex items-center gap-2 font-bold text-lg shrink-0">
-            <span className="text-2xl">⚽</span>
+            <CircleDot size={22} className="text-secondary" aria-hidden="true" />
             <span className="text-primary">政国中统</span>
             <span className="text-secondary text-sm font-medium hidden sm:inline">联队</span>
           </Link>
@@ -124,8 +124,12 @@ export default function PublicLayout() {
 
           {/* 移动端汉堡 */}
           <button
+            type="button"
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden p-2 text-gray-600 hover:text-primary"
+            className="lg:hidden w-11 h-11 inline-flex items-center justify-center text-gray-600 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
+            aria-label={mobileOpen ? '关闭导航菜单' : '打开导航菜单'}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-navigation"
           >
             {mobileOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -133,7 +137,7 @@ export default function PublicLayout() {
 
         {/* 移动端菜单 */}
         {mobileOpen && (
-          <nav className="lg:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-0.5 shadow-lg max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain">
+          <nav id="mobile-navigation" className="lg:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-0.5 shadow-lg max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain">
             {NAV_ITEMS.map(({ to, label }) => (
               <NavLink
                 key={to}
@@ -163,23 +167,23 @@ export default function PublicLayout() {
                     <Link
                       to="/admin"
                       onClick={() => setMobileOpen(false)}
-                      className="block px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:text-primary hover:bg-gray-50"
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:text-primary hover:bg-gray-50"
                     >
-                      🛡️ 管理后台
+                      <Shield size={16} aria-hidden="true" /> 管理后台
                     </Link>
                   )}
                   <Link
                     to="/profile"
                     onClick={() => setMobileOpen(false)}
-                    className="block px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:text-primary hover:bg-gray-50"
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:text-primary hover:bg-gray-50"
                   >
-                    ✏️ 修改用户名
+                    <Pencil size={16} aria-hidden="true" /> 修改用户名
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:text-primary hover:bg-gray-50"
+                    className="flex items-center gap-2 w-full text-left px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:text-primary hover:bg-gray-50"
                   >
-                    🚪 退出登录
+                    <LogOut size={16} aria-hidden="true" /> 退出登录
                   </button>
                 </>
               ) : (
@@ -205,7 +209,8 @@ export default function PublicLayout() {
       <footer className="bg-white border-t border-gray-100 py-8 mt-auto">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 text-sm font-bold mb-2">
-            <span className="text-primary">⚽ 政国中统联队</span>
+            <CircleDot size={18} className="text-secondary" aria-hidden="true" />
+            <span className="text-primary">政国中统联队</span>
           </div>
           <p className="text-xs text-gray-400 mb-1">
             对外经济贸易大学 · 政府管理学院 · 国际关系学院 · 中文学院 · 统计学院

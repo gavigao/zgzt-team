@@ -5,14 +5,14 @@ export default function NewsCard({ news }) {
   return (
     <Link
       to={`/news/${news.id}`}
-      className="bg-white rounded-2xl card-shadow overflow-hidden flex flex-col hover:scale-[1.01] transition-transform"
+      className="group bg-white rounded-2xl card-shadow overflow-hidden flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
       {/* 封面图 */}
-      <div className="h-40 bg-gray-100 flex items-center justify-center overflow-hidden">
+      <div className="h-44 sm:h-40 bg-gray-100 flex items-center justify-center overflow-hidden">
         {news.cover_image ? (
-          <img src={news.cover_image} alt="" className="w-full h-full object-cover" />
+          <img src={news.cover_image} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform duration-500 motion-reduce:transition-none group-hover:scale-[1.03]" />
         ) : (
-          <FileText size={36} className="text-gray-300" />
+          <FileText size={36} className="text-gray-300" aria-hidden="true" />
         )}
       </div>
 
@@ -27,7 +27,7 @@ export default function NewsCard({ news }) {
           <span className="text-xs text-text-sub">{news.published_at?.substring(0, 10)}</span>
         </div>
 
-        <h3 className="font-semibold text-text-main text-sm line-clamp-2 mb-1.5">
+        <h3 className="font-semibold text-text-main text-sm leading-6 line-clamp-2 mb-1.5 group-hover:text-primary transition-colors">
           {news.title}
         </h3>
 

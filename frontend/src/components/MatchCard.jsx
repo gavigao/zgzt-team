@@ -8,12 +8,12 @@ export default function MatchCard({ match }) {
   return (
     <Link
       to={`/matches/${match.id}`}
-      className="bg-white rounded-2xl card-shadow p-5 block hover:scale-[1.01] transition-transform"
+      className="group block bg-white rounded-2xl card-shadow p-4 sm:p-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
       {/* 赛事类型 + 阶段 */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-start justify-between gap-3 mb-3">
         {match.competition ? (
-          <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+          <span className={`max-w-[65%] text-xs font-medium px-2 py-1 rounded ${
             match.competition === '新生赛' ? 'bg-blue-50 text-secondary' : 'bg-red-50 text-primary'
           }`}>
             {match.competition}{match.stage ? ` · ${match.stage}` : ''}
@@ -21,26 +21,26 @@ export default function MatchCard({ match }) {
         ) : (
           <span />
         )}
-        <span className="text-xs text-text-sub">{match.match_date}</span>
+        <span className="shrink-0 text-xs text-text-sub tabular-nums">{match.match_date}</span>
       </div>
 
       {/* 对阵双方 + 比分 */}
-      <div className="flex items-center justify-between">
-        <div className="flex-1 text-right">
-          <p className="font-semibold text-text-main">政国中统</p>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0 flex-1 text-right">
+          <p className="font-semibold text-text-main leading-6 break-words">政国中统</p>
         </div>
 
         {/* 比分 */}
-        <div className="mx-5 flex-shrink-0 text-center">
+        <div className="mx-1.5 sm:mx-5 flex-shrink-0 text-center">
           {hasScore ? (
             <div className="flex items-center gap-2">
-              <span className={`text-3xl font-bold tabular-nums ${
+              <span className={`text-2xl sm:text-3xl font-bold tabular-nums ${
                 isWin ? 'text-primary' : isDraw ? 'text-amber-500' : 'text-text-sub'
               }`}>
                 {match.our_score}
               </span>
               <span className="text-xl text-gray-300 font-light">:</span>
-              <span className="text-3xl font-bold text-text-sub tabular-nums">
+              <span className="text-2xl sm:text-3xl font-bold text-text-sub tabular-nums">
                 {match.opponent_score}
               </span>
             </div>
@@ -58,14 +58,14 @@ export default function MatchCard({ match }) {
           )}
         </div>
 
-        <div className="flex-1 text-left">
-          <p className="font-semibold text-text-main">{match.opponent}</p>
+        <div className="min-w-0 flex-1 text-left">
+          <p className="font-semibold text-text-main leading-6 break-words">{match.opponent}</p>
         </div>
       </div>
 
       {/* 摘要 */}
       {match.summary && (
-        <p className="mt-3 text-xs text-text-sub line-clamp-2 border-t border-gray-50 pt-3">
+        <p className="mt-4 text-xs leading-5 text-text-sub line-clamp-2 border-t border-gray-100 pt-3">
           {match.summary.replace(/[#*`>-]/g, '').substring(0, 80)}
         </p>
       )}
