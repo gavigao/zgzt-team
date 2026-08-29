@@ -41,8 +41,8 @@ export default function AdminHonors() {
       </div>
 
       {show && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={()=>setShow(false)}>
-          <div className="bg-white rounded-2xl w-full max-w-md" onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full h-[calc(100dvh-1rem)] sm:h-auto sm:max-w-md sm:max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b"><h2 className="font-semibold">{editId?'编辑荣誉':'新增荣誉'}</h2><button onClick={()=>setShow(false)}><X size={18}/></button></div>
             <form onSubmit={handleSave} className="p-4 space-y-3">
               <input className="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm" placeholder="名称 *" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} required/>

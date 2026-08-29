@@ -56,7 +56,7 @@ export default function HomePage() {
 
   return (
     <div>
-      <section className="relative w-full h-[70vh] min-h-[400px] max-h-[600px] bg-gray-900 overflow-hidden">
+      <section className="relative w-full h-[52svh] min-h-[340px] max-h-[480px] sm:h-[60vh] sm:min-h-[400px] sm:max-h-[560px] lg:h-[70vh] lg:max-h-[600px] bg-gray-900 overflow-hidden">
         {SLIDES.map((slide, index) => (
           <div
             key={slide.src}

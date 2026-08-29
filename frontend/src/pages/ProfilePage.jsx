@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Camera } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -11,23 +11,27 @@ export default function ProfilePage() {
   const [username, setUsername] = useState(user?.username || '');
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [avatarMessage, setAvatarMessage] = useState('');
+  const [avatarError, setAvatarError] = useState('');
+  const [usernameMessage, setUsernameMessage] = useState('');
+  const [usernameError, setUsernameError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef(null);
+  const savedUsername = user?.username || '';
 
   const chooseAvatar = event => {
     const file = event.target.files?.[0];
-    setError('');
-    setMessage('');
+    setAvatarError('');
+    setAvatarMessage('');
     if (!file) return;
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      setError('头像仅支持 JPG、PNG、GIF 或 WebP');
+      setAvatarError('头像仅支持 JPG、PNG、GIF 或 WebP');
       event.target.value = '';
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      setError('头像不能超过 5 MB');
+      setAvatarError('头像不能超过 5 MB');
       event.target.value = '';
       return;
     }
@@ -41,38 +45,47 @@ export default function ProfilePage() {
   const handleAvatarUpload = async () => {
     if (!avatarFile) return;
     setUploadingAvatar(true);
-    setError('');
-    setMessage('');
+    setAvatarError('');
+    setAvatarMessage('');
     try {
       await updateAvatar(avatarFile);
       setAvatarFile(null);
       setAvatarPreview('');
-      setMessage('头像已更新，去留言板亮个相吧');
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+      setAvatarMessage('头像已更新，去留言板亮个相吧');
     } catch (err) {
-      setError(err.message || '头像上传失败，请重试');
+      setAvatarError(err.message || '头像上传失败，请重试');
     } finally {
       setUploadingAvatar(false);
     }
+  };
+
+  const cancelAvatar = () => {
+    setAvatarFile(null);
+    setAvatarPreview('');
+    setAvatarError('');
+    setAvatarMessage('');
+    if (avatarInputRef.current) avatarInputRef.current.value = '';
   };
 
   const handleSubmit = async event => {
     event.preventDefault();
     const value = username.trim();
     const length = Array.from(value).length;
-    setError('');
-    setMessage('');
+    setUsernameError('');
+    setUsernameMessage('');
 
     if (length < 2 || length > 20) {
-      setError('用户名需要 2-20 个字符');
+      setUsernameError('用户名需要 2-20 个字符');
       return;
     }
 
     setSubmitting(true);
     try {
       await updateUsername(value);
-      setMessage('用户名已更新');
+      setUsernameMessage('用户名已更新');
     } catch (err) {
-      setError(err.message || '用户名更新失败，请重试');
+      setUsernameError(err.message || '用户名更新失败，请重试');
     } finally {
       setSubmitting(false);
     }
@@ -88,10 +101,9 @@ export default function ProfilePage() {
           <h1 className="text-xl font-bold text-text-main">账户资料</h1>
           <p className="mt-1 text-sm text-text-sub">登录账号不可修改，头像和公开用户名可以随时更换。</p>
 
-          {error && <div className="mt-5 bg-red-50 text-red-600 text-sm px-3 py-2.5 rounded-lg">{error}</div>}
-          {message && <div className="mt-5 bg-green-50 text-green-700 text-sm px-3 py-2.5 rounded-lg">{message}</div>}
-
           <section className="mt-6 pb-6 border-b border-gray-100">
+            {avatarError && <div className="mb-4 bg-red-50 text-red-600 text-sm px-3 py-2.5 rounded-lg">{avatarError}</div>}
+            {avatarMessage && <div className="mb-4 bg-green-50 text-green-700 text-sm px-3 py-2.5 rounded-lg">{avatarMessage}</div>}
             <div className="flex items-center gap-4">
               <UserAvatar
                 src={avatarPreview || user?.avatar_url}
@@ -102,18 +114,28 @@ export default function ProfilePage() {
               <div className="min-w-0 flex-1">
                 <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm cursor-pointer">
                   <Camera size={16} /> 选择头像
-                  <input type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={chooseAvatar} className="hidden" />
+                  <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={chooseAvatar} className="hidden" />
                 </label>
                 <p className="text-xs text-text-sub mt-2">巨星头像、表情包、整活图都欢迎，单张不超过 5 MB。</p>
                 {avatarFile && (
-                  <button
-                    type="button"
-                    onClick={handleAvatarUpload}
-                    disabled={uploadingAvatar}
-                    className="mt-3 px-3 py-2 bg-secondary text-white text-sm rounded-xl disabled:opacity-50"
-                  >
-                    {uploadingAvatar ? '上传中...' : '保存新头像'}
-                  </button>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAvatarUpload}
+                      disabled={uploadingAvatar}
+                      className="px-3 py-2 bg-secondary text-white text-sm rounded-xl disabled:opacity-50"
+                    >
+                      {uploadingAvatar ? '上传中...' : '保存新头像'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelAvatar}
+                      disabled={uploadingAvatar}
+                      className="px-3 py-2 bg-gray-100 text-text-sub text-sm rounded-xl hover:bg-gray-200 disabled:opacity-50"
+                    >
+                      取消
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -130,6 +152,8 @@ export default function ProfilePage() {
           </div>
 
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+            {usernameError && <div className="bg-red-50 text-red-600 text-sm px-3 py-2.5 rounded-lg">{usernameError}</div>}
+            {usernameMessage && <div className="bg-green-50 text-green-700 text-sm px-3 py-2.5 rounded-lg">{usernameMessage}</div>}
             <div>
               <label className="block text-sm font-medium text-text-main mb-1.5">公开用户名</label>
               <input
@@ -144,7 +168,7 @@ export default function ProfilePage() {
             </div>
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || username.trim() === savedUsername}
               className="w-full py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {submitting ? '保存中...' : '保存用户名'}

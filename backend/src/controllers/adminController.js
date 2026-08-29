@@ -8,7 +8,7 @@ exports.getDashboard = async (req, res, next) => {
     const [[{ matchCount }]] = await pool.query('SELECT COUNT(*) as matchCount FROM matches');
     const [[{ newsCount }]] = await pool.query('SELECT COUNT(*) as newsCount FROM news');
     const [[{ userCount }]] = await pool.query('SELECT COUNT(*) as userCount FROM users');
-    const [[{ commentCount }]] = await pool.query('SELECT COUNT(*) as commentCount FROM comments');
+    const [[{ postCount }]] = await pool.query('SELECT COUNT(*) as postCount FROM board_posts');
     const [[{ albumCount }]] = await pool.query('SELECT COUNT(*) as albumCount FROM photo_albums');
     const [[upcomingRow]] = await pool.query(
       "SELECT COUNT(*) as cnt FROM training_schedules WHERE status='upcoming'"
@@ -16,7 +16,7 @@ exports.getDashboard = async (req, res, next) => {
 
     res.json({
       code: 200,
-      data: { playerCount, matchCount, newsCount, userCount, commentCount, albumCount, upcomingTraining: upcomingRow.cnt },
+      data: { playerCount, matchCount, newsCount, userCount, postCount, albumCount, upcomingTraining: upcomingRow.cnt },
       message: 'ok',
     });
   } catch (err) { next(err); }

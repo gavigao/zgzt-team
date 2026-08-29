@@ -133,7 +133,7 @@ export default function PublicLayout() {
 
         {/* 移动端菜单 */}
         {mobileOpen && (
-          <nav className="lg:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-0.5 shadow-lg">
+          <nav className="lg:hidden bg-white border-t border-gray-100 px-4 py-3 space-y-0.5 shadow-lg max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain">
             {NAV_ITEMS.map(({ to, label }) => (
               <NavLink
                 key={to}

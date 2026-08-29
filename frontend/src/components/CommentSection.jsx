@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getComments, createComment, deleteComment, toggleLike } from '../api/comments';
-import { Trash2, MessageCircle, Heart } from 'lucide-react';
+import { Trash2, MessageCircle, Heart, MoreHorizontal } from 'lucide-react';
 import UserAvatar from './UserAvatar';
 
 export default function CommentSection({ matchId }) {
@@ -12,6 +12,7 @@ export default function CommentSection({ matchId }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const loadComments = useCallback(async () => {
     try {
@@ -44,6 +45,7 @@ export default function CommentSection({ matchId }) {
     try {
       await deleteComment(id);
       setComments(prev => prev.filter(c => c.id !== id));
+      setOpenMenuId(null);
     } catch (err) {
       alert(err.message);
     }
@@ -84,25 +86,45 @@ export default function CommentSection({ matchId }) {
       ) : (
         <div className="space-y-3 mb-6">
           {comments.map(c => (
-            <div key={c.id} className="bg-gray-50 rounded-xl p-3 flex gap-2.5">
+            <div key={c.id} className="bg-gray-50/80 rounded-xl p-3.5 flex gap-3">
               <UserAvatar src={c.avatar_url} name={c.username} size="sm" />
               <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-text-main">{c.username}</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-text-sub">{c.created_at?.substring(0, 16)}</span>
-                  {(user?.id === c.user_id || isAdmin) && (
-                    <button onClick={() => handleDelete(c.id)} className="text-gray-400 hover:text-red-500 transition-colors">
-                      <Trash2 size={14} />
-                    </button>
-                  )}
+              <div className="flex items-start gap-2 mb-1">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-text-main truncate">{c.username}</p>
+                  <p className="text-[11px] text-text-sub mt-0.5">{c.created_at?.replace('T', ' ').substring(0, 16)}</p>
                 </div>
+                  {(user?.id === c.user_id || isAdmin) && (
+                    <div className="relative ml-auto shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setOpenMenuId(value => value === c.id ? null : c.id)}
+                        className="min-w-10 min-h-10 -mr-2 -mt-2 flex items-center justify-center rounded-full text-gray-400 hover:text-text-main hover:bg-gray-100"
+                        aria-label="评论操作"
+                        aria-expanded={openMenuId === c.id}
+                      >
+                        <MoreHorizontal size={18} />
+                      </button>
+                      {openMenuId === c.id && (
+                        <div className="absolute right-0 top-8 z-10 w-28 rounded-xl border border-gray-100 bg-white p-1 shadow-lg">
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(c.id)}
+                            className="flex min-h-10 w-full items-center gap-2 rounded-lg px-3 text-sm text-red-500 hover:bg-red-50"
+                          >
+                            <Trash2 size={14} /> 删除评论
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
               </div>
-              <p className="text-sm text-text-main whitespace-pre-wrap">{c.content}</p>
+              <p className="text-sm text-text-main whitespace-pre-wrap leading-relaxed mt-2">{c.content}</p>
               <div className="mt-2 flex items-center gap-1.5">
                 <button
                   onClick={() => handleLike(c)}
-                  className={`flex items-center gap-1 text-xs transition-colors ${c.liked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                  className={`min-h-10 px-2 rounded-lg flex items-center gap-1.5 text-xs transition-colors ${c.liked ? 'text-red-500 bg-red-50' : 'text-gray-400 hover:text-red-500 hover:bg-red-50'}`}
+                  aria-pressed={!!c.liked}
                 >
                   <Heart size={14} className={c.liked ? 'fill-red-500' : ''} />
                   <span>{c.like_count || 0}</span>
@@ -115,7 +137,9 @@ export default function CommentSection({ matchId }) {
       )}
 
       {user ? (
-        <form onSubmit={handleSubmit} className="space-y-2">
+        <form onSubmit={handleSubmit} className="flex items-start gap-3">
+          <UserAvatar src={user.avatar_url} name={user.username} size="sm" />
+          <div className="flex-1 min-w-0 space-y-2">
           {error && <p className="text-xs text-red-500">{error}</p>}
           <textarea
             value={content}
@@ -134,6 +158,7 @@ export default function CommentSection({ matchId }) {
             >
               {submitting ? '发表中...' : '发表评论'}
             </button>
+          </div>
           </div>
         </form>
       ) : (

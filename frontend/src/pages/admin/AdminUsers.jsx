@@ -46,7 +46,7 @@ export default function AdminUsers() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-text-main mb-1">管理员管理</h1>
+      <h1 className="text-xl font-bold text-text-main mb-1">用户管理</h1>
       <p className="text-sm text-text-sub mb-4">只有总负责人可以任命或撤销管理员；操作不会删除用户账户。</p>
 
       <div className="bg-white rounded-2xl card-shadow overflow-x-auto">

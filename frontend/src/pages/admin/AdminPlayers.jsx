@@ -74,8 +74,8 @@ export default function AdminPlayers() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={()=>setShowModal(false)}>
-          <div className="bg-white rounded-2xl w-full max-w-md max-h-[85vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full h-[calc(100dvh-1rem)] sm:h-auto sm:max-w-md sm:max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b"><h2 className="font-semibold">{editId?'编辑队员':'新增队员'}</h2><button onClick={()=>setShowModal(false)}><X size={18}/></button></div>
             <form onSubmit={handleSave} className="p-4 space-y-3">
               <ImageUploader

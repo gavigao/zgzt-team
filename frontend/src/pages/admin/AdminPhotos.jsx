@@ -99,8 +99,8 @@ export default function AdminPhotos() {
 
       {/* Album Modal */}
       {showA && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={()=>setShowA(false)}>
-          <div className="bg-white rounded-2xl w-full max-w-md" onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full h-[calc(100dvh-1rem)] sm:h-auto sm:max-w-md sm:max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b"><h2 className="font-semibold">{editId?'编辑相册':'新建相册'}</h2><button onClick={()=>setShowA(false)}><X size={18}/></button></div>
             <form onSubmit={handleSaveAlbum} className="p-4 space-y-3">
               <input className="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm" placeholder="相册名称 *" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} required/>
@@ -113,8 +113,8 @@ export default function AdminPhotos() {
 
       {/* Photo Modal */}
       {showP && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={()=>setShowP(false)}>
-          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto" onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full h-[calc(100dvh-1rem)] sm:h-auto sm:max-w-lg sm:max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b"><h2 className="font-semibold">{currentAlbum?.title} - 照片</h2><button onClick={()=>setShowP(false)}><X size={18}/></button></div>
             <div className="p-3 border-b flex gap-2 flex-wrap items-end">
               <input type="file" accept="image/*" multiple onChange={e=>setUploadFiles(Array.from(e.target.files || []))} className="text-sm"/>
@@ -139,8 +139,8 @@ export default function AdminPhotos() {
 
       {/* Move Photo Modal */}
       {moveTarget && (
-        <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4" onClick={()=>setMoveTarget(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-sm" onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 z-[60] bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full h-[calc(100dvh-1rem)] sm:h-auto sm:max-w-sm sm:max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b"><h2 className="font-semibold">移动照片到相册</h2><button onClick={()=>setMoveTarget(null)}><X size={18}/></button></div>
             <div className="p-4 space-y-3">
               <select className="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm" value={moveAlbumId} onChange={e=>setMoveAlbumId(e.target.value)}>
