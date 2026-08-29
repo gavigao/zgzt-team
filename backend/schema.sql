@@ -154,6 +154,23 @@ CREATE TABLE IF NOT EXISTS photo_albums (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================
+-- 8A. 首页轮播图
+-- =====================
+CREATE TABLE IF NOT EXISTS home_slides (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  image_url VARCHAR(500) NOT NULL,
+  alt_text VARCHAR(120) NOT NULL COMMENT '图片替代文字',
+  object_position ENUM('center', 'top', 'bottom') NOT NULL DEFAULT 'center' COMMENT '不同屏幕裁剪焦点',
+  sort_order INT NOT NULL DEFAULT 0,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_by INT DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_home_slides_active_sort (is_active, sort_order),
+  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- =====================
 -- 9. 照片
 -- =====================
 CREATE TABLE IF NOT EXISTS photos (

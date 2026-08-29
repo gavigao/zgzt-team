@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, Swords, Newspaper, Trophy,
-  Images, CalendarDays, UserCog, Settings, LogOut,
+  Images, GalleryHorizontalEnd, CalendarDays, UserCog, Settings, LogOut,
   ArrowLeft, Menu, X,
 } from 'lucide-react';
 
@@ -15,6 +15,7 @@ const ADMIN_MENU = [
   { to: '/admin/news', label: '新闻管理', icon: Newspaper, adminOnly: true },
   { to: '/admin/honors', label: '荣誉管理', icon: Trophy, adminOnly: true },
   { to: '/admin/photos', label: '照片管理', icon: Images, adminOnly: true },
+  { to: '/admin/home-slides', label: '首页轮播', icon: GalleryHorizontalEnd, adminOnly: true },
   { to: '/admin/training', label: '训练管理', icon: CalendarDays, adminOnly: true },
   { to: '/admin/users', label: '用户管理', icon: UserCog, adminOnly: true },
   { to: '/admin/settings', label: '网站设置', icon: Settings, adminOnly: true },

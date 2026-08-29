@@ -27,6 +27,9 @@ router.get('/news/:id', ctrl.getNewsById);
 router.get('/albums', ctrl.getAlbums);
 router.get('/albums/:id/photos', ctrl.getAlbumPhotos);
 
+// 首页轮播
+router.get('/home-slides', ctrl.getHomeSlides);
+
 // 训练
 router.get('/training', ctrl.getTrainingSchedules);
 

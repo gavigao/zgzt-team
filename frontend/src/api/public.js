@@ -25,5 +25,8 @@ export const getNewsById = (id) => api.get(`/public/news/${id}`);
 export const getAlbums = () => api.get('/public/albums');
 export const getAlbumPhotos = (albumId) => api.get(`/public/albums/${albumId}/photos`);
 
+// ==================== 首页轮播 ====================
+export const getHomeSlides = () => api.get('/public/home-slides');
+
 // ==================== 训练 ====================
 export const getTrainingSchedules = (params = {}) => api.get('/public/training', { params });

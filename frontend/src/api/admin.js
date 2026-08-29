@@ -44,6 +44,13 @@ export const deletePhoto = (id) => api.delete(`/admin/photos/${id}`);
 export const movePhoto = (id, albumId) => api.put(`/admin/photos/${id}/album`, { album_id: albumId });
 export const uploadImage = (formData) => api.post('/admin/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 
+// 首页轮播
+export const listHomeSlides = () => api.get('/admin/home-slides');
+export const createHomeSlide = data => api.post('/admin/home-slides', data);
+export const updateHomeSlide = (id, data) => api.put(`/admin/home-slides/${id}`, data);
+export const deleteHomeSlide = id => api.delete(`/admin/home-slides/${id}`);
+export const reorderHomeSlides = orderedIds => api.put('/admin/home-slides/reorder', { ordered_ids: orderedIds });
+
 // 训练 CRUD
 export const listTraining = () => api.get('/admin/training');
 export const createTraining = (data) => api.post('/admin/training', data);

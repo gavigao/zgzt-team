@@ -33,6 +33,7 @@ import AdminNews from './pages/admin/AdminNews';
 import AdminNewsEdit from './pages/admin/AdminNewsEdit';
 import AdminHonors from './pages/admin/AdminHonors';
 import AdminPhotos from './pages/admin/AdminPhotos';
+import AdminHomeSlides from './pages/admin/AdminHomeSlides';
 import AdminTraining from './pages/admin/AdminTraining';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminSettings from './pages/admin/AdminSettings';
@@ -115,6 +116,7 @@ export default function App() {
           <Route path="news/:id/edit" element={<AdminRoute><AdminNewsEdit /></AdminRoute>} />
           <Route path="honors" element={<AdminRoute><AdminHonors /></AdminRoute>} />
           <Route path="photos" element={<AdminRoute><AdminPhotos /></AdminRoute>} />
+          <Route path="home-slides" element={<AdminRoute><AdminHomeSlides /></AdminRoute>} />
           <Route path="training" element={<AdminRoute><AdminTraining /></AdminRoute>} />
           <Route path="users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
           <Route path="settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />

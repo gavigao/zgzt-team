@@ -9,23 +9,30 @@ import {
   Play,
   Swords,
 } from 'lucide-react';
-import { getMatches, getNews, getTrainingSchedules } from '../api/public';
+import { getHomeSlides, getMatches, getNews, getTrainingSchedules } from '../api/public';
 import MatchCard from '../components/MatchCard';
 import NewsCard from '../components/NewsCard';
 import TrainingCard from '../components/TrainingCard';
 
-const SLIDES = [
-  { src: '/images/捧杯时刻.jpg', alt: '捧杯时刻' },
-  { src: '/images/26年6月颁奖典礼合照.jpg', alt: '颁奖典礼合照' },
-  { src: '/images/毕业礼物.jpg', alt: '毕业礼物' },
-  { src: '/images/决赛庆祝2.jpg', alt: '决赛庆祝' },
-  { src: '/images/决赛后聚餐.jpg', alt: '决赛后聚餐' },
+const DEFAULT_SLIDES = [
+  { id: 'default-1', image_url: '/images/捧杯时刻.jpg', alt_text: '捧杯时刻', object_position: 'center' },
+  { id: 'default-2', image_url: '/images/26年6月颁奖典礼合照.jpg', alt_text: '颁奖典礼合照', object_position: 'center' },
+  { id: 'default-3', image_url: '/images/毕业礼物.jpg', alt_text: '毕业礼物', object_position: 'center' },
+  { id: 'default-4', image_url: '/images/决赛庆祝2.jpg', alt_text: '决赛庆祝', object_position: 'center' },
+  { id: 'default-5', image_url: '/images/决赛后聚餐.jpg', alt_text: '决赛后聚餐', object_position: 'center' },
 ];
+
+const POSITION_CLASSES = {
+  center: 'object-center',
+  top: 'object-top',
+  bottom: 'object-bottom',
+};
 
 export default function HomePage() {
   const [current, setCurrent] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [slides, setSlides] = useState(DEFAULT_SLIDES);
   const [training, setTraining] = useState([]);
   const [matches, setMatches] = useState([]);
   const [latestNews, setLatestNews] = useState([]);
@@ -42,14 +49,28 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (isPaused || prefersReducedMotion) return undefined;
+    if (isPaused || prefersReducedMotion || slides.length < 2) return undefined;
 
     timerRef.current = setInterval(() => {
-      setCurrent(value => (value + 1) % SLIDES.length);
+      setCurrent(value => (value + 1) % slides.length);
     }, 6000);
 
     return () => clearInterval(timerRef.current);
-  }, [isPaused, prefersReducedMotion]);
+  }, [isPaused, prefersReducedMotion, slides.length]);
+
+  useEffect(() => {
+    getHomeSlides()
+      .then(response => {
+        if (Array.isArray(response.data)) setSlides(response.data);
+      })
+      .catch(() => {
+        // 数据库迁移尚未执行或网络暂时不可用时，保留原有轮播图。
+      });
+  }, []);
+
+  useEffect(() => {
+    setCurrent(value => (slides.length === 0 ? 0 : Math.min(value, slides.length - 1)));
+  }, [slides.length]);
 
   const goTo = index => setCurrent(index);
 
@@ -75,41 +96,41 @@ export default function HomePage() {
         aria-roledescription="carousel"
         aria-label="球队精彩瞬间"
       >
-        {SLIDES.map((slide, index) => (
+        {slides.map((slide, index) => (
           <div
-            key={slide.src}
+            key={slide.id || slide.image_url}
             aria-hidden={index !== current}
             className={`absolute inset-0 transition-opacity duration-700 motion-reduce:transition-none ${index === current ? 'opacity-100' : 'opacity-0'}`}
           >
             <img
-              src={slide.src}
-              alt={index === current ? slide.alt : ''}
+              src={slide.image_url}
+              alt={index === current ? slide.alt_text : ''}
               loading={index === 0 ? 'eager' : 'lazy'}
               fetchPriority={index === 0 ? 'high' : 'auto'}
               decoding="async"
-              className={`w-full h-full object-cover motion-safe:transition-transform motion-safe:duration-[6000ms] ${index === current ? 'motion-safe:scale-105' : 'scale-100'}`}
+              className={`w-full h-full object-cover ${POSITION_CLASSES[slide.object_position] || 'object-center'} motion-safe:transition-transform motion-safe:duration-[6000ms] ${index === current ? 'motion-safe:scale-105' : 'scale-100'}`}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/10 to-slate-950/90" />
             <div className="absolute inset-0 bg-gradient-to-r from-slate-950/55 via-transparent to-transparent" />
           </div>
         ))}
 
-        <button
+        {slides.length > 1 && <button
           type="button"
-          onClick={() => goTo((current - 1 + SLIDES.length) % SLIDES.length)}
+          onClick={() => goTo((current - 1 + slides.length) % slides.length)}
           className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 backdrop-blur-sm text-white flex items-center justify-center z-10 transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
           aria-label="上一张照片"
         >
           <ChevronLeft size={22} />
-        </button>
-        <button
+        </button>}
+        {slides.length > 1 && <button
           type="button"
-          onClick={() => goTo((current + 1) % SLIDES.length)}
+          onClick={() => goTo((current + 1) % slides.length)}
           className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 backdrop-blur-sm text-white flex items-center justify-center z-10 transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
           aria-label="下一张照片"
         >
           <ChevronRight size={22} />
-        </button>
+        </button>}
 
         <div className="absolute inset-x-0 bottom-0 z-10 pb-16 sm:pb-20">
           <div className="max-w-6xl mx-auto px-5 sm:px-6 text-center text-white">
@@ -127,11 +148,11 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center z-10" aria-label="轮播控制">
-          {SLIDES.map((slide, index) => (
+        {slides.length > 1 && <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center z-10" aria-label="轮播控制">
+          {slides.map((slide, index) => (
             <button
               type="button"
-              key={slide.src}
+              key={slide.id || slide.image_url}
               onClick={() => goTo(index)}
               className="group w-11 h-11 inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white rounded-full"
               aria-label={`查看第 ${index + 1} 张照片`}
@@ -150,7 +171,7 @@ export default function HomePage() {
               {isPaused ? <Play size={15} fill="currentColor" /> : <Pause size={15} fill="currentColor" />}
             </button>
           )}
-        </div>
+        </div>}
       </section>
 
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14">

@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const { BCRYPT_ROUNDS } = require('../config/auth');
 
 const ACCOUNT_PATTERN = /^[a-z0-9_-]{4,32}$/;
+const HOME_SLIDE_POSITIONS = new Set(['center', 'top', 'bottom']);
 
 function normalizeAccount(value) {
   return typeof value === 'string' ? value.trim().toLowerCase() : '';
@@ -393,6 +394,127 @@ exports.uploadImage = async (req, res, next) => {
     const url = '/uploads/' + req.file.filename;
     res.json({ code: 200, data: { url }, message: '上传成功' });
   } catch (err) { next(err); }
+};
+
+// ==================== 首页轮播管理 ====================
+
+function normalizeHomeSlide(body) {
+  const imageUrl = typeof body.image_url === 'string' ? body.image_url.trim() : '';
+  const altText = typeof body.alt_text === 'string' ? body.alt_text.trim() : '';
+  const objectPosition = HOME_SLIDE_POSITIONS.has(body.object_position) ? body.object_position : 'center';
+  return {
+    imageUrl,
+    altText,
+    objectPosition,
+    isActive: body.is_active === false || body.is_active === 0 ? 0 : 1,
+  };
+}
+
+function validateHomeSlide(slide) {
+  if (!slide.imageUrl) return '请上传或选择轮播图片';
+  if (!slide.altText) return '请填写图片说明';
+  if (slide.altText.length > 120) return '图片说明不能超过 120 个字符';
+  return null;
+}
+
+exports.listHomeSlides = async (req, res, next) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM home_slides ORDER BY sort_order ASC, id ASC'
+    );
+    res.json({ code: 200, data: rows, message: 'ok' });
+  } catch (err) { next(err); }
+};
+
+exports.createHomeSlide = async (req, res, next) => {
+  try {
+    const slide = normalizeHomeSlide(req.body);
+    const validationError = validateHomeSlide(slide);
+    if (validationError) {
+      return res.status(400).json({ code: 400, data: null, message: validationError });
+    }
+
+    const [[{ nextSortOrder }]] = await pool.query(
+      'SELECT COALESCE(MAX(sort_order), -1) + 1 AS nextSortOrder FROM home_slides'
+    );
+    const [result] = await pool.query(
+      `INSERT INTO home_slides
+       (image_url, alt_text, object_position, sort_order, is_active, created_by)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [slide.imageUrl, slide.altText, slide.objectPosition, nextSortOrder, slide.isActive, req.user.id]
+    );
+    const [rows] = await pool.query('SELECT * FROM home_slides WHERE id = ?', [result.insertId]);
+    res.status(201).json({ code: 201, data: rows[0], message: '轮播图片添加成功' });
+  } catch (err) { next(err); }
+};
+
+exports.updateHomeSlide = async (req, res, next) => {
+  try {
+    const slide = normalizeHomeSlide(req.body);
+    const validationError = validateHomeSlide(slide);
+    if (validationError) {
+      return res.status(400).json({ code: 400, data: null, message: validationError });
+    }
+
+    const [result] = await pool.query(
+      `UPDATE home_slides
+       SET image_url = ?, alt_text = ?, object_position = ?, is_active = ?
+       WHERE id = ?`,
+      [slide.imageUrl, slide.altText, slide.objectPosition, slide.isActive, req.params.id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ code: 404, data: null, message: '轮播图片不存在' });
+    }
+    const [rows] = await pool.query('SELECT * FROM home_slides WHERE id = ?', [req.params.id]);
+    res.json({ code: 200, data: rows[0], message: '轮播图片更新成功' });
+  } catch (err) { next(err); }
+};
+
+exports.deleteHomeSlide = async (req, res, next) => {
+  try {
+    const [result] = await pool.query('DELETE FROM home_slides WHERE id = ?', [req.params.id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ code: 404, data: null, message: '轮播图片不存在' });
+    }
+    res.json({ code: 200, data: null, message: '轮播图片已删除' });
+  } catch (err) { next(err); }
+};
+
+exports.reorderHomeSlides = async (req, res, next) => {
+  const connection = await pool.getConnection();
+  try {
+    const orderedIds = Array.isArray(req.body.ordered_ids)
+      ? req.body.ordered_ids.map(Number)
+      : [];
+    if (orderedIds.length === 0 || orderedIds.some(id => !Number.isInteger(id) || id <= 0)) {
+      return res.status(400).json({ code: 400, data: null, message: '排序数据无效' });
+    }
+    if (new Set(orderedIds).size !== orderedIds.length) {
+      return res.status(400).json({ code: 400, data: null, message: '排序数据包含重复项目' });
+    }
+
+    const [existingRows] = await connection.query('SELECT id FROM home_slides');
+    const existingIds = new Set(existingRows.map(row => Number(row.id)));
+    if (existingIds.size !== orderedIds.length || orderedIds.some(id => !existingIds.has(id))) {
+      return res.status(400).json({ code: 400, data: null, message: '请提交全部轮播图片的完整顺序' });
+    }
+
+    await connection.beginTransaction();
+    for (let index = 0; index < orderedIds.length; index += 1) {
+      await connection.query(
+        'UPDATE home_slides SET sort_order = ? WHERE id = ?',
+        [index, orderedIds[index]]
+      );
+    }
+    await connection.commit();
+    const [rows] = await connection.query('SELECT * FROM home_slides ORDER BY sort_order ASC, id ASC');
+    res.json({ code: 200, data: rows, message: '轮播顺序已更新' });
+  } catch (err) {
+    await connection.rollback();
+    next(err);
+  } finally {
+    connection.release();
+  }
 };
 
 // ==================== 训练管理 ====================

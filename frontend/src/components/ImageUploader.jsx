@@ -1,11 +1,15 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Upload, X } from 'lucide-react';
 
-export default function ImageUploader({ onUpload, currentUrl = '', previewSize = 'h-40' }) {
+export default function ImageUploader({ onUpload, onRemove, currentUrl = '', previewSize = 'h-40' }) {
   const inputRef = useRef(null);
   const [preview, setPreview] = useState(currentUrl || null);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+
+  useEffect(() => {
+    setPreview(currentUrl || null);
+  }, [currentUrl]);
 
   const handleFile = async (file) => {
     if (!file) return;
@@ -47,6 +51,7 @@ export default function ImageUploader({ onUpload, currentUrl = '', previewSize =
   const handleRemove = () => {
     setPreview(null);
     if (inputRef.current) inputRef.current.value = '';
+    onRemove?.();
   };
 
   return (
@@ -70,8 +75,9 @@ export default function ImageUploader({ onUpload, currentUrl = '', previewSize =
             <img src={preview} alt="预览" className="w-full h-full object-cover rounded-xl" />
             <button
               type="button"
+              aria-label="移除当前图片"
               onClick={(e) => { e.stopPropagation(); handleRemove(); }}
-              className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+              className="absolute top-2 right-2 w-11 h-11 inline-flex items-center justify-center bg-black/55 text-white rounded-full hover:bg-black/75 transition-colors"
             >
               <X size={14} />
             </button>

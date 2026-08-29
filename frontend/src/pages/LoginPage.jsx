@@ -65,7 +65,7 @@ export default function LoginPage() {
               onChange={(e) => setAccount(e.target.value)}
               className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm
                 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
-              placeholder="请输入注册时设置的账号"
+              placeholder="请输入账号"
               autoFocus
               autoComplete="username"
             />

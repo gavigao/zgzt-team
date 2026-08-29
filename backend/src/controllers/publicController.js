@@ -238,6 +238,20 @@ exports.getAlbumPhotos = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+// ==================== 首页轮播 ====================
+
+exports.getHomeSlides = async (req, res, next) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT id, image_url, alt_text, object_position
+       FROM home_slides
+       WHERE is_active = 1
+       ORDER BY sort_order ASC, id ASC`
+    );
+    res.json({ code: 200, data: rows, message: 'ok' });
+  } catch (err) { next(err); }
+};
+
 // ==================== 训练 ====================
 
 exports.getTrainingSchedules = async (req, res, next) => {

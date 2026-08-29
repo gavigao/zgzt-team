@@ -49,6 +49,13 @@ router.delete('/photos/:id', ctrl.deletePhoto);
 router.put('/photos/:id/album', ctrl.movePhoto);
 router.post('/upload', upload.single('image'), ctrl.uploadImage);
 
+// 首页轮播 CRUD 与排序
+router.get('/home-slides', ctrl.listHomeSlides);
+router.post('/home-slides', ctrl.createHomeSlide);
+router.put('/home-slides/reorder', ctrl.reorderHomeSlides);
+router.put('/home-slides/:id', ctrl.updateHomeSlide);
+router.delete('/home-slides/:id', ctrl.deleteHomeSlide);
+
 // 训练 CRUD
 router.get('/training', ctrl.listTraining);
 router.post('/training', ctrl.createTraining);
