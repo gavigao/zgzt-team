@@ -28,6 +28,9 @@ api.interceptors.response.use(
         window.location.href = '/login';
       }
     }
+    if (error.response?.status === 428 && window.location.pathname !== '/change-password') {
+      window.location.href = '/change-password';
+    }
     const message = error.response?.data?.message || '网络请求失败';
     return Promise.reject(new Error(message));
   }

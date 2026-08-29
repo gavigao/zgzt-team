@@ -7,10 +7,19 @@ async function findCurrentUser(payload) {
   if (!Number.isInteger(userId) || userId <= 0) return null;
 
   const [rows] = await pool.execute(
-    'SELECT id, role, username FROM users WHERE id = ?',
+    `SELECT u.id, u.role, u.username, u.must_change_password, u.auth_version,
+            b.player_id
+     FROM users u
+     LEFT JOIN user_player_bindings b ON b.user_id = u.id
+     WHERE u.id = ?`,
     [userId]
   );
-  return rows[0] || null;
+  const user = rows[0] || null;
+  if (!user) return null;
+
+  const tokenVersion = Number(payload.ver ?? 0);
+  if (tokenVersion !== Number(user.auth_version || 0)) return null;
+  return user;
 }
 
 // 需要公开互动的接口必须先完成用户名设置，避免绕过首次登录引导。
@@ -20,6 +29,18 @@ function requireProfile(req, res, next) {
       code: 409,
       data: null,
       message: '请先为账户设置用户名'
+    });
+  }
+  next();
+}
+
+// 使用统一初始密码或管理员重置后，只允许先完成密码修改。
+function requirePasswordChanged(req, res, next) {
+  if (req.user?.must_change_password) {
+    return res.status(428).json({
+      code: 428,
+      data: { must_change_password: true },
+      message: '首次登录或密码重置后，请先修改密码',
     });
   }
   next();
@@ -71,4 +92,4 @@ async function optionalAuth(req, _res, next) {
   }
 }
 
-module.exports = { authenticate, optionalAuth, requireProfile };
+module.exports = { authenticate, optionalAuth, requireProfile, requirePasswordChanged };

@@ -26,7 +26,12 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const loggedInUser = await login(account.trim(), password);
-      navigate(loggedInUser.username ? from : '/welcome', { replace: true });
+      navigate(
+        loggedInUser.must_change_password
+          ? '/change-password'
+          : (loggedInUser.username ? from : '/welcome'),
+        { replace: true }
+      );
     } catch (err) {
       setError(err.message || '登录失败，请重试');
     } finally {

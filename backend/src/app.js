@@ -9,6 +9,7 @@ const publicRoutes = require('./routes/public');
 const commentRoutes = require('./routes/comments');
 const boardRoutes = require('./routes/board');
 const adminRoutes = require('./routes/admin');
+const playerProfileRoutes = require('./routes/playerProfile');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -26,6 +27,7 @@ app.use('/api/public', publicRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/board', boardRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/player-profile', playerProfileRoutes);
 
 // 健康检查
 app.get('/api/health', (_req, res) => {

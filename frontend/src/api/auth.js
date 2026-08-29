@@ -16,3 +16,9 @@ export const updateAvatarApi = (formData) =>
   api.post('/auth/me/avatar', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
+
+export const changePasswordApi = (currentPassword, newPassword) =>
+  api.put('/auth/me/password', {
+    current_password: currentPassword,
+    new_password: newPassword,
+  });

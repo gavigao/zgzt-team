@@ -113,10 +113,9 @@ export default function HomePage() {
 
         <div className="absolute inset-x-0 bottom-0 z-10 pb-16 sm:pb-20">
           <div className="max-w-6xl mx-auto px-5 sm:px-6 text-center text-white">
-            <p className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold tracking-[0.18em] backdrop-blur-sm">校园足球</p>
-            <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight [text-wrap:balance] drop-shadow-lg">政国中统联队</h1>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight [text-wrap:balance] drop-shadow-lg">政国中统联队</h1>
             <p className="mt-3 text-sm sm:text-base text-slate-100 drop-shadow">对外经济贸易大学</p>
-            <p className="mx-auto mt-1 max-w-2xl text-xs sm:text-sm leading-6 text-slate-200 drop-shadow">政府管理学院 · 国际关系学院 · 中文学院 · 统计学院</p>
+            <p className="mx-auto mt-1 max-w-2xl text-xs sm:text-sm leading-6 text-slate-200 drop-shadow">政府管理学院 · 国际关系学院 · 文传学院 · 统计学院</p>
             <div className="mt-6 flex items-center justify-center gap-3 flex-wrap">
               <Link to="/matches" className="min-h-11 px-5 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl shadow-lg shadow-red-950/30 inline-flex items-center gap-1.5 transition-colors hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950">
                 <Swords size={16} /> 赛程安排

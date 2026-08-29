@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Camera } from 'lucide-react';
+import { ArrowLeft, Camera, KeyRound, UserRound } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import UserAvatar from '../components/UserAvatar';
 
@@ -149,6 +149,17 @@ export default function ProfilePage() {
               disabled
               className="w-full px-3 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-sm text-gray-500 cursor-not-allowed"
             />
+          </div>
+
+          <div className="mt-4 grid sm:grid-cols-2 gap-3">
+            <Link to="/change-password" className="min-h-11 px-3 inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium text-text-main">
+              <KeyRound size={17} aria-hidden="true" /> 修改密码
+            </Link>
+            {user?.player_id && (
+              <Link to="/admin/my-player" className="min-h-11 px-3 inline-flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 rounded-xl text-sm font-medium text-secondary">
+                <UserRound size={17} aria-hidden="true" /> 编辑我的队员资料
+              </Link>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} className="mt-4 space-y-4">

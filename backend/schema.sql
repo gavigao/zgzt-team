@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash VARCHAR(255) NOT NULL,
   avatar_url VARCHAR(500) DEFAULT NULL COMMENT '社区头像',
   role ENUM('owner', 'admin', 'player') NOT NULL DEFAULT 'player',
+  must_change_password TINYINT(1) NOT NULL DEFAULT 0 COMMENT '首次登录或重置后必须修改密码',
+  auth_version INT NOT NULL DEFAULT 0 COMMENT '密码修改后使旧登录凭证失效',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_role (role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -32,9 +34,14 @@ CREATE TABLE IF NOT EXISTS players (
   position VARCHAR(50) DEFAULT NULL COMMENT '场上位置',
   jersey_number INT DEFAULT NULL COMMENT '球衣号码',
   grade YEAR DEFAULT NULL COMMENT '入学年份',
-  college VARCHAR(50) DEFAULT NULL COMMENT '所属学院（政管/国关/中文/统计）',
+  college VARCHAR(50) DEFAULT NULL COMMENT '所属学院（政管/国关/文传/统计）',
   status ENUM('active', 'alumni') NOT NULL DEFAULT 'active' COMMENT '现役/离队',
   bio TEXT DEFAULT NULL COMMENT '个人简介',
+  bio_visible TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否公开个人简介',
+  workplace VARCHAR(120) DEFAULT NULL COMMENT '毕业去向或工作单位',
+  workplace_visible TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否公开工作单位',
+  city VARCHAR(80) DEFAULT NULL COMMENT '所在城市',
+  city_visible TINYINT(1) NOT NULL DEFAULT 0 COMMENT '是否公开所在城市',
   join_year YEAR DEFAULT NULL COMMENT '入队年份',
   message TEXT DEFAULT NULL COMMENT '寄语',
   is_captain TINYINT(1) DEFAULT 0 COMMENT '现任队长',
@@ -44,6 +51,16 @@ CREATE TABLE IF NOT EXISTS players (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_status (status),
   INDEX idx_college (college)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 用户与队员保持独立，通过唯一绑定表建立一对一关系。
+CREATE TABLE IF NOT EXISTS user_player_bindings (
+  user_id INT NOT NULL PRIMARY KEY,
+  player_id INT NOT NULL UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================

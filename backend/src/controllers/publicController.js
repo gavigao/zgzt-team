@@ -49,6 +49,11 @@ exports.getPlayers = async (req, res, next) => {
       filterValues: values,
       orderBy: 'is_captain DESC, sort_order ASC, grade DESC',
       page, limit,
+      selectFields: `id, name, photo_url, position, jersey_number, grade, college, status,
+        CASE WHEN bio_visible = 1 THEN bio ELSE NULL END AS bio,
+        CASE WHEN workplace_visible = 1 THEN workplace ELSE NULL END AS workplace,
+        CASE WHEN city_visible = 1 THEN city ELSE NULL END AS city,
+        join_year, message, is_captain, is_former_captain, sort_order, created_at, updated_at`,
     });
 
     res.json({ code: 200, data: result, message: 'ok' });
@@ -57,7 +62,15 @@ exports.getPlayers = async (req, res, next) => {
 
 exports.getPlayerById = async (req, res, next) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM players WHERE id = ?', [req.params.id]);
+    const [rows] = await pool.query(
+      `SELECT id, name, photo_url, position, jersey_number, grade, college, status,
+              CASE WHEN bio_visible = 1 THEN bio ELSE NULL END AS bio,
+              CASE WHEN workplace_visible = 1 THEN workplace ELSE NULL END AS workplace,
+              CASE WHEN city_visible = 1 THEN city ELSE NULL END AS city,
+              join_year, message, is_captain, is_former_captain, sort_order, created_at, updated_at
+       FROM players WHERE id = ?`,
+      [req.params.id]
+    );
     if (rows.length === 0) {
       return res.status(404).json({ code: 404, data: null, message: '队员不存在' });
     }
@@ -202,7 +215,14 @@ exports.getNewsById = async (req, res, next) => {
 exports.getAlbums = async (req, res, next) => {
   try {
     const [rows] = await pool.query(
-      'SELECT * FROM photo_albums ORDER BY sort_order ASC, created_at DESC'
+      `SELECT a.*,
+              COALESCE(
+                (SELECT p.url FROM photos p WHERE p.album_id = a.id ORDER BY p.created_at DESC, p.id DESC LIMIT 1),
+                a.cover_photo_url
+              ) AS cover_photo_url,
+              (SELECT COUNT(*) FROM photos p WHERE p.album_id = a.id) AS photo_count
+       FROM photo_albums a
+       ORDER BY a.sort_order ASC, a.created_at DESC`
     );
     res.json({ code: 200, data: rows, message: 'ok' });
   } catch (err) { next(err); }

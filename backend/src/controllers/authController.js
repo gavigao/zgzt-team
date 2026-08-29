@@ -28,13 +28,27 @@ function publicUser(user) {
     email: user.email ?? null,
     avatar_url: user.avatar_url ?? null,
     role: user.role,
+    must_change_password: Boolean(user.must_change_password),
+    player_id: user.player_id ?? null,
   };
+}
+
+async function findUserById(id) {
+  const [rows] = await pool.execute(
+    `SELECT u.id, u.account, u.username, u.email, u.avatar_url, u.role,
+            u.must_change_password, u.auth_version, u.created_at, b.player_id
+     FROM users u
+     LEFT JOIN user_player_bindings b ON b.user_id = u.id
+     WHERE u.id = ?`,
+    [id]
+  );
+  return rows[0] || null;
 }
 
 // 生成 JWT。用户名可修改，所以不写入令牌。
 function generateToken(user) {
   return jwt.sign(
-    { sub: user.id },
+    { sub: user.id, ver: Number(user.auth_version || 0) },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRY }
   );
@@ -74,7 +88,17 @@ exports.register = async (req, res, next) => {
       [account, passwordHash, 'player']
     );
 
-    const user = { id: result.insertId, account, username: null, email: null, avatar_url: null, role: 'player' };
+    const user = {
+      id: result.insertId,
+      account,
+      username: null,
+      email: null,
+      avatar_url: null,
+      role: 'player',
+      must_change_password: 0,
+      auth_version: 0,
+      player_id: null,
+    };
     const token = generateToken(user);
 
     res.status(201).json({
@@ -102,7 +126,11 @@ exports.login = async (req, res, next) => {
     }
 
     const [rows] = await pool.execute(
-      'SELECT id, account, username, email, avatar_url, password_hash, role FROM users WHERE account = ?',
+      `SELECT u.id, u.account, u.username, u.email, u.avatar_url, u.password_hash,
+              u.role, u.must_change_password, u.auth_version, b.player_id
+       FROM users u
+       LEFT JOIN user_player_bindings b ON b.user_id = u.id
+       WHERE u.account = ?`,
       [account]
     );
 
@@ -132,16 +160,62 @@ exports.login = async (req, res, next) => {
 // 获取当前用户信息
 exports.getMe = async (req, res, next) => {
   try {
+    const user = await findUserById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ code: 404, data: null, message: '用户不存在' });
+    }
+    res.json({ code: 200, data: publicUser(user), message: 'ok' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// 修改密码。首次登录和管理员重置后都必须经过这里解锁账户。
+exports.changePassword = async (req, res, next) => {
+  try {
+    const currentPassword = typeof req.body.current_password === 'string' ? req.body.current_password : '';
+    const newPassword = typeof req.body.new_password === 'string' ? req.body.new_password : '';
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ code: 400, data: null, message: '请填写当前密码和新密码' });
+    }
+    if (newPassword.length < 8) {
+      return res.status(400).json({ code: 400, data: null, message: '新密码至少需要 8 个字符' });
+    }
+    if (Buffer.byteLength(newPassword, 'utf8') > 72) {
+      return res.status(400).json({ code: 400, data: null, message: '新密码过长，请控制在 72 个字节以内' });
+    }
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ code: 400, data: null, message: '新密码不能与当前密码相同' });
+    }
+
     const [rows] = await pool.execute(
-      'SELECT id, account, username, email, avatar_url, role, created_at FROM users WHERE id = ?',
+      'SELECT password_hash, auth_version FROM users WHERE id = ?',
       [req.user.id]
     );
-
     if (rows.length === 0) {
       return res.status(404).json({ code: 404, data: null, message: '用户不存在' });
     }
+    if (!(await bcrypt.compare(currentPassword, rows[0].password_hash))) {
+      return res.status(400).json({ code: 400, data: null, message: '当前密码不正确' });
+    }
 
-    res.json({ code: 200, data: rows[0], message: 'ok' });
+    const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    const nextVersion = Number(rows[0].auth_version || 0) + 1;
+    await pool.execute(
+      `UPDATE users
+       SET password_hash = ?, must_change_password = 0, auth_version = ?
+       WHERE id = ?`,
+      [passwordHash, nextVersion, req.user.id]
+    );
+
+    const user = await findUserById(req.user.id);
+    const token = generateToken(user);
+    res.json({
+      code: 200,
+      data: { user: publicUser(user), token },
+      message: '密码修改成功',
+    });
   } catch (err) {
     next(err);
   }
@@ -164,11 +238,8 @@ exports.updateUsername = async (req, res, next) => {
       return res.status(404).json({ code: 404, data: null, message: '用户不存在' });
     }
 
-    const [rows] = await pool.execute(
-      'SELECT id, account, username, email, avatar_url, role, created_at FROM users WHERE id = ?',
-      [req.user.id]
-    );
-    res.json({ code: 200, data: rows[0], message: '用户名更新成功' });
+    const user = await findUserById(req.user.id);
+    res.json({ code: 200, data: publicUser(user), message: '用户名更新成功' });
   } catch (err) {
     next(err);
   }
@@ -190,11 +261,8 @@ exports.updateAvatar = async (req, res, next) => {
       return res.status(404).json({ code: 404, data: null, message: '用户不存在' });
     }
 
-    const [rows] = await pool.execute(
-      'SELECT id, account, username, email, avatar_url, role, created_at FROM users WHERE id = ?',
-      [req.user.id]
-    );
-    res.json({ code: 200, data: rows[0], message: '头像更新成功' });
+    const user = await findUserById(req.user.id);
+    res.json({ code: 200, data: publicUser(user), message: '头像更新成功' });
   } catch (err) {
     next(err);
   }

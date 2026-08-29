@@ -22,6 +22,19 @@ export function ProtectedRoute({ children }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  if (user.must_change_password) {
+    return <Navigate to="/change-password" replace />;
+  }
+
+  return children;
+}
+
+// 仅验证登录，用于首次改密页面本身。
+export function AuthenticatedRoute({ children }) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+  if (loading) return <LoadingScreen />;
+  if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
   return children;
 }
 
@@ -31,6 +44,10 @@ export function OnboardingRoute({ children }) {
 
   if (loading) {
     return <LoadingScreen />;
+  }
+
+  if (user?.must_change_password) {
+    return <Navigate to="/change-password" replace />;
   }
 
   if (user && !user.username) {
@@ -56,6 +73,16 @@ export function AdminRoute({ children }) {
     return <Navigate to="/" replace />;
   }
 
+  return children;
+}
+
+// 管理员或已绑定队员的普通用户可以进入后台；具体页面再按权限限制。
+export function BackstageRoute({ children }) {
+  const { user, isAdmin, loading } = useAuth();
+  if (loading) return <LoadingScreen />;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.must_change_password) return <Navigate to="/change-password" replace />;
+  if (!isAdmin && !user.player_id) return <Navigate to="/" replace />;
   return children;
 }
 

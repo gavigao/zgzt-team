@@ -1,6 +1,6 @@
-import { Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
-import { ProtectedRoute, AdminRoute, OnboardingRoute, OwnerRoute } from './components/ProtectedRoute';
+import { Navigate, Routes, Route } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { ProtectedRoute, AuthenticatedRoute, AdminRoute, BackstageRoute, OnboardingRoute } from './components/ProtectedRoute';
 import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
 
@@ -22,6 +22,7 @@ import RegisterPage from './pages/RegisterPage';
 import WelcomePage from './pages/WelcomePage';
 import ProfilePage from './pages/ProfilePage';
 import BoardPage from './pages/BoardPage';
+import ChangePasswordPage from './pages/ChangePasswordPage';
 
 // 管理后台页面
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -35,6 +36,13 @@ import AdminPhotos from './pages/admin/AdminPhotos';
 import AdminTraining from './pages/admin/AdminTraining';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminSettings from './pages/admin/AdminSettings';
+import MyPlayerProfile from './pages/admin/MyPlayerProfile';
+
+function AdminIndex() {
+  const { isAdmin, user } = useAuth();
+  if (isAdmin) return <AdminDashboard />;
+  return <Navigate to={user?.player_id ? '/admin/my-player' : '/'} replace />;
+}
 
 export default function App() {
   return (
@@ -60,6 +68,14 @@ export default function App() {
         {/* 登录/注册（独立布局，无导航栏） */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/change-password"
+          element={
+            <AuthenticatedRoute>
+              <ChangePasswordPage />
+            </AuthenticatedRoute>
+          }
+        />
 
         {/* 新用户引导与账户资料 */}
         <Route
@@ -79,28 +95,29 @@ export default function App() {
           }
         />
 
-        {/* 管理后台（需登录 + 管理员） — Phase 5 实现 */}
+        {/* 管理后台：管理员管理全站，已绑定队员可维护自己的资料。 */}
         <Route
           path="/admin"
           element={
             <ProtectedRoute>
-              <AdminRoute>
+              <BackstageRoute>
                 <AdminLayout />
-              </AdminRoute>
+              </BackstageRoute>
             </ProtectedRoute>
           }
         >
-          <Route index element={<AdminDashboard />} />
-          <Route path="players" element={<AdminPlayers />} />
-          <Route path="matches" element={<AdminMatches />} />
-          <Route path="matches/:id/edit" element={<AdminMatchEdit />} />
-          <Route path="news" element={<AdminNews />} />
-          <Route path="news/:id/edit" element={<AdminNewsEdit />} />
-          <Route path="honors" element={<AdminHonors />} />
-          <Route path="photos" element={<AdminPhotos />} />
-          <Route path="training" element={<AdminTraining />} />
-          <Route path="users" element={<OwnerRoute><AdminUsers /></OwnerRoute>} />
-          <Route path="settings" element={<AdminSettings />} />
+          <Route index element={<AdminIndex />} />
+          <Route path="my-player" element={<MyPlayerProfile />} />
+          <Route path="players" element={<AdminRoute><AdminPlayers /></AdminRoute>} />
+          <Route path="matches" element={<AdminRoute><AdminMatches /></AdminRoute>} />
+          <Route path="matches/:id/edit" element={<AdminRoute><AdminMatchEdit /></AdminRoute>} />
+          <Route path="news" element={<AdminRoute><AdminNews /></AdminRoute>} />
+          <Route path="news/:id/edit" element={<AdminRoute><AdminNewsEdit /></AdminRoute>} />
+          <Route path="honors" element={<AdminRoute><AdminHonors /></AdminRoute>} />
+          <Route path="photos" element={<AdminRoute><AdminPhotos /></AdminRoute>} />
+          <Route path="training" element={<AdminRoute><AdminTraining /></AdminRoute>} />
+          <Route path="users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+          <Route path="settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
         </Route>
       </Routes>
     </AuthProvider>

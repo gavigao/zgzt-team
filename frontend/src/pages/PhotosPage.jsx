@@ -36,7 +36,7 @@ export default function PhotosPage() {
             >
               <div className="h-36 bg-gray-100 flex items-center justify-center overflow-hidden">
                 {a.cover_photo_url ? (
-                  <img src={a.cover_photo_url} alt="" className="w-full h-full object-cover" />
+                  <img src={a.cover_photo_url} alt={`${a.title}相册封面`} className="w-full h-full object-cover" loading="lazy" />
                 ) : (
                   <Image size={32} className="text-gray-300" />
                 )}
@@ -48,6 +48,7 @@ export default function PhotosPage() {
                 {a.description && (
                   <p className="text-xs text-text-sub mt-1 line-clamp-1">{a.description}</p>
                 )}
+                <p className="text-xs text-gray-400 mt-1.5">{Number(a.photo_count || 0)} 张照片</p>
               </div>
             </Link>
           ))}

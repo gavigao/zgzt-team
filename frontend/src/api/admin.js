@@ -52,6 +52,10 @@ export const deleteTraining = (id) => api.delete(`/admin/training/${id}`);
 
 // 用户管理
 export const listUsers = () => api.get('/admin/users');
+export const createUser = data => api.post('/admin/users', data);
+export const bindUserPlayer = (id, playerId) => api.put(`/admin/users/${id}/player`, { player_id: playerId || null });
+export const resetUserPassword = id => api.post(`/admin/users/${id}/reset-password`);
+export const deleteUser = id => api.delete(`/admin/users/${id}`);
 export const updateUserRole = (id, role) => api.put(`/admin/users/${id}/role`, { role });
 
 // 球队设置

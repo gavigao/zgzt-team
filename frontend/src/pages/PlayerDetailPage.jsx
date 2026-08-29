@@ -86,10 +86,22 @@ export default function PlayerDetailPage() {
       </div>
 
       {/* 个人简介 */}
-      <div className="bg-white rounded-2xl card-shadow p-6 mt-4">
-        <h2 className="font-semibold text-text-main mb-2">个人简介</h2>
-        <p className="text-sm text-text-sub leading-relaxed whitespace-pre-wrap">{player.bio || '暂无简介'}</p>
-      </div>
+      {(player.workplace || player.city) && (
+        <div className="bg-white rounded-2xl card-shadow p-6 mt-4">
+          <h2 className="font-semibold text-text-main mb-3">毕业之后</h2>
+          <div className="grid sm:grid-cols-2 gap-3 text-sm">
+            {player.workplace && <div><p className="text-xs text-text-sub">工作单位／毕业去向</p><p className="mt-1 text-text-main font-medium">{player.workplace}</p></div>}
+            {player.city && <div><p className="text-xs text-text-sub">所在城市</p><p className="mt-1 text-text-main font-medium">{player.city}</p></div>}
+          </div>
+        </div>
+      )}
+
+      {player.bio && (
+        <div className="bg-white rounded-2xl card-shadow p-6 mt-4">
+          <h2 className="font-semibold text-text-main mb-2">个人简介</h2>
+          <p className="text-sm text-text-sub leading-relaxed whitespace-pre-wrap">{player.bio}</p>
+        </div>
+      )}
 
       {/* 寄语 */}
       <div className="bg-white rounded-2xl card-shadow p-6 mt-4">

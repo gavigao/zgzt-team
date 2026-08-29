@@ -3,7 +3,12 @@ import { listPlayers, createPlayer, updatePlayer, deletePlayer, uploadImage } fr
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
 import ImageUploader from '../../components/ImageUploader';
 
-const EMPTY = { name: '', position: '', jersey_number: '', grade: '', college: '', status: 'active', bio: '', join_year: '', message: '', is_captain: false, is_former_captain: false, photo_url: '' };
+const EMPTY = {
+  name: '', position: '', jersey_number: '', grade: '', college: '', status: 'active',
+  bio: '', bio_visible: true, workplace: '', workplace_visible: false,
+  city: '', city_visible: false, join_year: '', message: '', is_captain: false,
+  is_former_captain: false, photo_url: '', account: '', initial_password: '12345678',
+};
 
 export default function AdminPlayers() {
   const [players, setPlayers] = useState([]);
@@ -19,7 +24,7 @@ export default function AdminPlayers() {
   useEffect(() => { load(); }, []);
 
   const openNew = () => { setForm(EMPTY); setEditId(null); setShowModal(true); };
-  const openEdit = (p) => { setForm(p); setEditId(p.id); setShowModal(true); };
+  const openEdit = (p) => { setForm({ ...EMPTY, ...p }); setEditId(p.id); setShowModal(true); };
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -49,15 +54,16 @@ export default function AdminPlayers() {
       </div>
 
       {/* 表格 */}
-      <div className="bg-white rounded-2xl card-shadow overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-white rounded-2xl card-shadow overflow-x-auto">
+        <table className="w-full min-w-[760px] text-sm">
           <thead><tr className="border-b border-gray-100 text-left text-text-sub text-xs">
-            <th className="p-3 pl-4">姓名</th><th className="p-3">位置</th><th className="p-3">号码</th><th className="p-3">学院</th><th className="p-3">状态</th><th className="p-3 pr-4">操作</th>
+            <th className="p-3 pl-4">姓名</th><th className="p-3">账号绑定</th><th className="p-3">位置</th><th className="p-3">号码</th><th className="p-3">学院</th><th className="p-3">状态</th><th className="p-3 pr-4">操作</th>
           </tr></thead>
           <tbody>
             {players.map(p => (
               <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                 <td className="p-3 pl-4 font-medium">{p.name}{p.is_captain ? <span className="ml-1.5 text-xs text-amber-600">现任队长</span>:''}{p.is_former_captain ? <span className="ml-1.5 text-xs text-blue-600">历届队长</span>:''}</td>
+                <td className="p-3 text-xs text-text-sub">{p.bound_account || <span className="text-amber-600">未绑定</span>}</td>
                 <td className="p-3 text-text-sub">{p.position||'-'}</td>
                 <td className="p-3 text-text-sub">{p.jersey_number||'-'}</td>
                 <td className="p-3"><span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{p.college||'-'}</span></td>
@@ -91,6 +97,13 @@ export default function AdminPlayers() {
                 }}
               />
               <input className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" placeholder="姓名 *" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} required/>
+              {!editId && (
+                <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3 space-y-2">
+                  <label className="block text-xs font-medium text-text-main">登录账号 *</label>
+                  <input className="w-full min-h-11 px-3 bg-white border border-blue-100 rounded-xl text-sm" placeholder="队员姓名拼音" value={form.account} onChange={e=>setForm({...form,account:e.target.value.toLowerCase()})} pattern="[a-zA-Z0-9_-]{4,32}" required/>
+                  <p className="text-xs text-text-sub">创建后与该队员自动绑定，初始密码为 12345678，首次登录必须修改。</p>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-2">
                 <input className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" placeholder="位置" value={form.position} onChange={e=>setForm({...form,position:e.target.value})}/>
                 <input className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" placeholder="号码" type="number" value={form.jersey_number} onChange={e=>setForm({...form,jersey_number:e.target.value})}/>
@@ -99,7 +112,7 @@ export default function AdminPlayers() {
                 <input className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" placeholder="入学年份" type="number" value={form.grade} onChange={e=>setForm({...form,grade:e.target.value})}/>
                 <select className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" value={form.college} onChange={e=>setForm({...form,college:e.target.value})}>
                   <option value="">学院</option>
-                  {['政管','国关','中文','统计'].map(c=><option key={c} value={c}>{c}</option>)}
+                  {['政管','国关','文传','统计'].map(c=><option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -111,6 +124,11 @@ export default function AdminPlayers() {
               </div>
               <input className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" placeholder="入队年份（如 2023）" type="number" value={form.join_year} onChange={e=>setForm({...form,join_year:e.target.value})}/>
               <textarea className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" rows={2} placeholder="简介" value={form.bio} onChange={e=>setForm({...form,bio:e.target.value})}/>
+              <label className="flex items-center gap-2 text-xs text-text-sub"><input type="checkbox" checked={!!form.bio_visible} onChange={e=>setForm({...form,bio_visible:e.target.checked})}/>公开个人简介</label>
+              <input className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" placeholder="工作单位／毕业去向" value={form.workplace || ''} onChange={e=>setForm({...form,workplace:e.target.value})}/>
+              <label className="flex items-center gap-2 text-xs text-text-sub"><input type="checkbox" checked={!!form.workplace_visible} onChange={e=>setForm({...form,workplace_visible:e.target.checked})}/>公开工作单位／毕业去向</label>
+              <input className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" placeholder="所在城市" value={form.city || ''} onChange={e=>setForm({...form,city:e.target.value})}/>
+              <label className="flex items-center gap-2 text-xs text-text-sub"><input type="checkbox" checked={!!form.city_visible} onChange={e=>setForm({...form,city_visible:e.target.checked})}/>公开所在城市</label>
               <textarea className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm" rows={2} placeholder="寄语" value={form.message} onChange={e=>setForm({...form,message:e.target.value})}/>
               <button type="submit" disabled={saving} className="w-full py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-red-700 disabled:opacity-50">{saving?'保存中...':'保存'}</button>
             </form>

@@ -2,11 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getDashboard } from '../../api/admin';
 import { Users, Swords, Newspaper, Image, MessageSquare } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
-  const { isOwner } = useAuth();
 
   useEffect(() => {
     getDashboard().then(res => setStats(res.data)).catch(() => {});
@@ -18,7 +16,7 @@ export default function AdminDashboard() {
     { label: '队员', value: stats.playerCount, icon: Users, color: 'text-blue-600 bg-blue-50', to: '/admin/players' },
     { label: '比赛', value: stats.matchCount, icon: Swords, color: 'text-primary bg-red-50', to: '/admin/matches' },
     { label: '新闻', value: stats.newsCount, icon: Newspaper, color: 'text-green-600 bg-green-50', to: '/admin/news' },
-    { label: '用户', value: stats.userCount, icon: Users, color: 'text-purple-600 bg-purple-50', to: isOwner ? '/admin/users' : null },
+    { label: '用户', value: stats.userCount, icon: Users, color: 'text-purple-600 bg-purple-50', to: '/admin/users' },
     { label: '帖子', value: stats.postCount ?? stats.boardPostCount ?? '—', icon: MessageSquare, color: 'text-amber-600 bg-amber-50' },
     { label: '相册', value: stats.albumCount, icon: Image, color: 'text-teal-600 bg-teal-50', to: '/admin/photos' },
   ];

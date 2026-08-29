@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const ctrl = require('../controllers/adminController');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, requirePasswordChanged } = require('../middleware/auth');
 const { requireAdmin, requireOwner } = require('../middleware/admin');
 const upload = require('../middleware/upload');
 
 // 所有 admin 路由都需要登录 + 管理员
 router.use(authenticate);
+router.use(requirePasswordChanged);
 router.use(requireAdmin);
 
 // 仪表盘
@@ -55,7 +56,11 @@ router.put('/training/:id', ctrl.updateTraining);
 router.delete('/training/:id', ctrl.deleteTraining);
 
 // 用户管理
-router.get('/users', requireOwner, ctrl.listUsers);
+router.get('/users', ctrl.listUsers);
+router.post('/users', ctrl.createUser);
+router.put('/users/:id/player', ctrl.bindUserPlayer);
+router.post('/users/:id/reset-password', ctrl.resetUserPassword);
+router.delete('/users/:id', ctrl.deleteUser);
 router.put('/users/:id/role', requireOwner, ctrl.updateUserRole);
 
 // 球队设置

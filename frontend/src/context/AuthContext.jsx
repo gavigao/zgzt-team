@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { loginApi, registerApi, getMeApi, updateUsernameApi, updateAvatarApi } from '../api/auth';
+import { loginApi, registerApi, getMeApi, updateUsernameApi, updateAvatarApi, changePasswordApi } from '../api/auth';
 
 const AuthContext = createContext(null);
 
@@ -54,6 +54,13 @@ export function AuthProvider({ children }) {
     return res.data;
   }, []);
 
+  const changePassword = useCallback(async (currentPassword, newPassword) => {
+    const res = await changePasswordApi(currentPassword, newPassword);
+    localStorage.setItem('token', res.data.token);
+    setUser(res.data.user);
+    return res.data.user;
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     setUser(null);
@@ -63,7 +70,7 @@ export function AuthProvider({ children }) {
   const isAdmin = isOwner || user?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, updateUsername, updateAvatar, logout, isAdmin, isOwner }}>
+    <AuthContext.Provider value={{ user, loading, login, register, updateUsername, updateAvatar, changePassword, logout, isAdmin, isOwner }}>
       {children}
     </AuthContext.Provider>
   );

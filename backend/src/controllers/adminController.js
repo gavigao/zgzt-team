@@ -1,4 +1,35 @@
 const pool = require('../db/index');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const { BCRYPT_ROUNDS } = require('../config/auth');
+
+const ACCOUNT_PATTERN = /^[a-z0-9_-]{4,32}$/;
+
+function normalizeAccount(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+function validatePassword(password) {
+  if (typeof password !== 'string' || password.length < 8) return '密码至少需要 8 个字符';
+  if (Buffer.byteLength(password, 'utf8') > 72) return '密码过长，请控制在 72 个字节以内';
+  return null;
+}
+
+function temporaryPassword() {
+  return `Zgzt-${crypto.randomBytes(6).toString('base64url')}`;
+}
+
+async function selectPlayerWithBinding(connection, id) {
+  const [rows] = await connection.query(
+    `SELECT p.*, u.id AS bound_user_id, u.account AS bound_account, u.username AS bound_username
+     FROM players p
+     LEFT JOIN user_player_bindings b ON b.player_id = p.id
+     LEFT JOIN users u ON u.id = b.user_id
+     WHERE p.id = ?`,
+    [id]
+  );
+  return rows[0] || null;
+}
 
 // ==================== 仪表盘 ====================
 
@@ -26,35 +57,97 @@ exports.getDashboard = async (req, res, next) => {
 
 exports.listPlayers = async (req, res, next) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM players ORDER BY is_captain DESC, sort_order ASC, grade DESC');
+    const [rows] = await pool.query(
+      `SELECT p.*, u.id AS bound_user_id, u.account AS bound_account, u.username AS bound_username
+       FROM players p
+       LEFT JOIN user_player_bindings b ON b.player_id = p.id
+       LEFT JOIN users u ON u.id = b.user_id
+       ORDER BY p.is_captain DESC, p.sort_order ASC, p.grade DESC`
+    );
     res.json({ code: 200, data: rows, message: 'ok' });
   } catch (err) { next(err); }
 };
 
 exports.createPlayer = async (req, res, next) => {
+  const connection = await pool.getConnection();
   try {
-    const { name, position, jersey_number, grade, college, status, bio, join_year, message, is_captain, is_former_captain, photo_url } = req.body;
+    const {
+      name, position, jersey_number, grade, college, status, bio, bio_visible,
+      workplace, workplace_visible, city, city_visible, join_year, message,
+      is_captain, is_former_captain, photo_url, account: rawAccount,
+      initial_password: initialPassword,
+    } = req.body;
     if (!name) return res.status(400).json({ code: 400, data: null, message: '姓名不能为空' });
 
-    const [result] = await pool.query(
-      'INSERT INTO players (name, position, jersey_number, grade, college, status, bio, join_year, message, is_captain, is_former_captain, photo_url) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
-      [name, position || null, jersey_number || null, grade || null, college || null, status || 'active', bio || null, join_year || null, message || null, is_captain ? 1 : 0, is_former_captain ? 1 : 0, photo_url || null]
+    const account = normalizeAccount(rawAccount);
+    if (rawAccount && !ACCOUNT_PATTERN.test(account)) {
+      return res.status(400).json({ code: 400, data: null, message: '账号需要 4-32 位，只能使用字母、数字、下划线或短横线' });
+    }
+    const password = initialPassword || '12345678';
+    const passwordError = account ? validatePassword(password) : null;
+    if (passwordError) return res.status(400).json({ code: 400, data: null, message: passwordError });
+
+    await connection.beginTransaction();
+    const [result] = await connection.query(
+      `INSERT INTO players
+       (name, position, jersey_number, grade, college, status, bio, bio_visible,
+        workplace, workplace_visible, city, city_visible, join_year, message,
+        is_captain, is_former_captain, photo_url)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+      [name.trim(), position || null, jersey_number || null, grade || null, college || null,
+        status || 'active', bio || null, bio_visible === false ? 0 : 1,
+        workplace || null, workplace_visible ? 1 : 0, city || null, city_visible ? 1 : 0,
+        join_year || null, message || null, is_captain ? 1 : 0,
+        is_former_captain ? 1 : 0, photo_url || null]
     );
-    const [rows] = await pool.query('SELECT * FROM players WHERE id = ?', [result.insertId]);
-    res.status(201).json({ code: 201, data: rows[0], message: '队员添加成功' });
-  } catch (err) { next(err); }
+
+    if (account) {
+      const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+      const [userResult] = await connection.query(
+        `INSERT INTO users (account, username, password_hash, role, must_change_password)
+         VALUES (?, ?, ?, 'player', 1)`,
+        [account, name.trim(), passwordHash]
+      );
+      await connection.query(
+        'INSERT INTO user_player_bindings (user_id, player_id) VALUES (?, ?)',
+        [userResult.insertId, result.insertId]
+      );
+    }
+
+    await connection.commit();
+    const player = await selectPlayerWithBinding(connection, result.insertId);
+    res.status(201).json({ code: 201, data: player, message: account ? '队员和登录账号添加成功' : '队员添加成功' });
+  } catch (err) {
+    await connection.rollback();
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ code: 409, data: null, message: '账号已存在或队员已绑定其他用户' });
+    }
+    next(err);
+  } finally {
+    connection.release();
+  }
 };
 
 exports.updatePlayer = async (req, res, next) => {
   try {
-    const { name, position, jersey_number, grade, college, status, bio, join_year, message, is_captain, is_former_captain, photo_url } = req.body;
+    const {
+      name, position, jersey_number, grade, college, status, bio, bio_visible,
+      workplace, workplace_visible, city, city_visible, join_year, message,
+      is_captain, is_former_captain, photo_url,
+    } = req.body;
     const [result] = await pool.query(
-      'UPDATE players SET name=?, position=?, jersey_number=?, grade=?, college=?, status=?, bio=?, join_year=?, message=?, is_captain=?, is_former_captain=?, photo_url=? WHERE id=?',
-      [name, position || null, jersey_number || null, grade || null, college || null, status || 'active', bio || null, join_year || null, message || null, is_captain ? 1 : 0, is_former_captain ? 1 : 0, photo_url || null, req.params.id]
+      `UPDATE players SET name=?, position=?, jersey_number=?, grade=?, college=?, status=?,
+       bio=?, bio_visible=?, workplace=?, workplace_visible=?, city=?, city_visible=?,
+       join_year=?, message=?, is_captain=?, is_former_captain=?, photo_url=? WHERE id=?`,
+      [name, position || null, jersey_number || null, grade || null, college || null,
+        status || 'active', bio || null, bio_visible === false ? 0 : 1,
+        workplace || null, workplace_visible ? 1 : 0, city || null, city_visible ? 1 : 0,
+        join_year || null, message || null, is_captain ? 1 : 0,
+        is_former_captain ? 1 : 0, photo_url || null, req.params.id]
     );
     if (result.affectedRows === 0) return res.status(404).json({ code: 404, data: null, message: '队员不存在' });
-    const [rows] = await pool.query('SELECT * FROM players WHERE id = ?', [req.params.id]);
-    res.json({ code: 200, data: rows[0], message: '队员更新成功' });
+    const player = await selectPlayerWithBinding(pool, req.params.id);
+    res.json({ code: 200, data: player, message: '队员更新成功' });
   } catch (err) { next(err); }
 };
 
@@ -350,9 +443,169 @@ exports.deleteTraining = async (req, res, next) => {
 exports.listUsers = async (req, res, next) => {
   try {
     const [rows] = await pool.query(
-      'SELECT id, account, username, email, avatar_url, role, created_at FROM users ORDER BY created_at DESC'
+      `SELECT u.id, u.account, u.username, u.email, u.avatar_url, u.role,
+              u.must_change_password, u.created_at, p.id AS player_id, p.name AS player_name
+       FROM users u
+       LEFT JOIN user_player_bindings b ON b.user_id = u.id
+       LEFT JOIN players p ON p.id = b.player_id
+       ORDER BY u.created_at DESC`
     );
     res.json({ code: 200, data: rows, message: 'ok' });
+  } catch (err) { next(err); }
+};
+
+exports.createUser = async (req, res, next) => {
+  const connection = await pool.getConnection();
+  try {
+    const account = normalizeAccount(req.body.account);
+    const password = req.body.password || '12345678';
+    const username = typeof req.body.username === 'string' ? req.body.username.trim() : '';
+    const playerId = req.body.player_id ? Number(req.body.player_id) : null;
+    const playerName = typeof req.body.player_name === 'string' ? req.body.player_name.trim() : '';
+
+    if (!ACCOUNT_PATTERN.test(account)) {
+      return res.status(400).json({ code: 400, data: null, message: '账号需要 4-32 位，只能使用字母、数字、下划线或短横线' });
+    }
+    const passwordError = validatePassword(password);
+    if (passwordError) return res.status(400).json({ code: 400, data: null, message: passwordError });
+    if (playerId && playerName) {
+      return res.status(400).json({ code: 400, data: null, message: '不能同时绑定已有队员和创建新队员' });
+    }
+
+    await connection.beginTransaction();
+    let resolvedPlayerId = playerId;
+    let resolvedPlayerName = '';
+    if (playerName) {
+      const [playerResult] = await connection.query(
+        'INSERT INTO players (name, status) VALUES (?, ?)',
+        [playerName, 'active']
+      );
+      resolvedPlayerId = playerResult.insertId;
+      resolvedPlayerName = playerName;
+    } else if (playerId) {
+      const [players] = await connection.query(
+        `SELECT p.name, b.user_id
+         FROM players p LEFT JOIN user_player_bindings b ON b.player_id = p.id
+         WHERE p.id = ?`,
+        [playerId]
+      );
+      if (players.length === 0) {
+        await connection.rollback();
+        return res.status(404).json({ code: 404, data: null, message: '队员不存在' });
+      }
+      if (players[0].user_id) {
+        await connection.rollback();
+        return res.status(409).json({ code: 409, data: null, message: '该队员已绑定其他用户' });
+      }
+      resolvedPlayerName = players[0].name;
+    }
+
+    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+    const [userResult] = await connection.query(
+      `INSERT INTO users (account, username, password_hash, role, must_change_password)
+       VALUES (?, ?, ?, 'player', 1)`,
+      [account, username || resolvedPlayerName || null, passwordHash]
+    );
+    if (resolvedPlayerId) {
+      await connection.query(
+        'INSERT INTO user_player_bindings (user_id, player_id) VALUES (?, ?)',
+        [userResult.insertId, resolvedPlayerId]
+      );
+    }
+
+    await connection.commit();
+    res.status(201).json({ code: 201, data: { id: userResult.insertId }, message: resolvedPlayerId ? '用户和队员档案创建成功' : '用户创建成功' });
+  } catch (err) {
+    await connection.rollback();
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ code: 409, data: null, message: '账号已存在或绑定关系冲突' });
+    }
+    next(err);
+  } finally {
+    connection.release();
+  }
+};
+
+exports.bindUserPlayer = async (req, res, next) => {
+  const connection = await pool.getConnection();
+  try {
+    const userId = Number(req.params.id);
+    const playerId = req.body.player_id ? Number(req.body.player_id) : null;
+    await connection.beginTransaction();
+    const [users] = await connection.query('SELECT id FROM users WHERE id = ?', [userId]);
+    if (users.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ code: 404, data: null, message: '用户不存在' });
+    }
+
+    await connection.query('DELETE FROM user_player_bindings WHERE user_id = ?', [userId]);
+    if (playerId) {
+      await connection.query(
+        'INSERT INTO user_player_bindings (user_id, player_id) VALUES (?, ?)',
+        [userId, playerId]
+      );
+    }
+    await connection.commit();
+    res.json({ code: 200, data: null, message: playerId ? '队员绑定成功' : '已解除队员绑定' });
+  } catch (err) {
+    await connection.rollback();
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ code: 409, data: null, message: '该队员已绑定其他用户' });
+    }
+    if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+      return res.status(404).json({ code: 404, data: null, message: '队员不存在' });
+    }
+    next(err);
+  } finally {
+    connection.release();
+  }
+};
+
+exports.resetUserPassword = async (req, res, next) => {
+  try {
+    const targetId = Number(req.params.id);
+    if (targetId === req.user.id) {
+      return res.status(400).json({ code: 400, data: null, message: '请在账户资料中修改自己的密码' });
+    }
+    const [users] = await pool.query('SELECT id, role FROM users WHERE id = ?', [targetId]);
+    if (users.length === 0) {
+      return res.status(404).json({ code: 404, data: null, message: '用户不存在' });
+    }
+    if (users[0].role === 'owner' && req.user.role !== 'owner') {
+      return res.status(403).json({ code: 403, data: null, message: '管理员不能重置总负责人的密码' });
+    }
+
+    const password = temporaryPassword();
+    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+    await pool.query(
+      `UPDATE users
+       SET password_hash = ?, must_change_password = 1, auth_version = auth_version + 1
+       WHERE id = ?`,
+      [passwordHash, targetId]
+    );
+    res.json({ code: 200, data: { temporary_password: password }, message: '临时密码已生成，仅显示本次' });
+  } catch (err) { next(err); }
+};
+
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const targetId = Number(req.params.id);
+    if (targetId === req.user.id) {
+      return res.status(400).json({ code: 400, data: null, message: '不能删除自己的账户' });
+    }
+    const [users] = await pool.query('SELECT id, role FROM users WHERE id = ?', [targetId]);
+    if (users.length === 0) {
+      return res.status(404).json({ code: 404, data: null, message: '用户不存在' });
+    }
+    if (users[0].role === 'owner') {
+      return res.status(403).json({ code: 403, data: null, message: '不能删除总负责人账户' });
+    }
+    if (req.user.role !== 'owner' && users[0].role === 'admin') {
+      return res.status(403).json({ code: 403, data: null, message: '管理员不能删除其他管理员' });
+    }
+
+    await pool.query('DELETE FROM users WHERE id = ?', [targetId]);
+    res.json({ code: 200, data: null, message: '用户已删除，队员档案已保留' });
   } catch (err) { next(err); }
 };
 
