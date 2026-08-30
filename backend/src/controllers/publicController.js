@@ -136,7 +136,19 @@ exports.getMatchById = async (req, res, next) => {
 
     // 附带评论
     const [commentRows] = await pool.query(
-      'SELECT c.*, u.username, u.avatar_url FROM comments c JOIN users u ON c.user_id = u.id WHERE c.match_id = ? ORDER BY c.created_at DESC',
+      `SELECT c.id, c.match_id, c.user_id, c.parent_id, c.is_deleted,
+              CASE WHEN c.is_deleted = 1 THEN NULL ELSE c.content END AS content,
+              CASE WHEN c.is_deleted = 1 THEN 0 ELSE c.like_count END AS like_count,
+              c.created_at,
+              CASE WHEN c.is_deleted = 1 THEN NULL ELSE u.username END AS username,
+              CASE WHEN c.is_deleted = 1 THEN NULL ELSE u.avatar_url END AS avatar_url
+       FROM comments c
+       JOIN users u ON c.user_id = u.id
+       LEFT JOIN comments parent ON parent.id = c.parent_id
+       WHERE c.match_id = ?
+       ORDER BY COALESCE(parent.created_at, c.created_at) DESC,
+                CASE WHEN c.parent_id IS NULL THEN 0 ELSE 1 END ASC,
+                c.created_at ASC`,
       [req.params.id]
     );
 

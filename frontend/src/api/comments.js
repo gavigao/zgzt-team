@@ -4,8 +4,8 @@ import api from './index';
 export const getComments = (matchId) => api.get(`/comments/matches/${matchId}`);
 
 // 发表评论
-export const createComment = (matchId, content) =>
-  api.post(`/comments/matches/${matchId}`, { content });
+export const createComment = (matchId, content, parentId = null) =>
+  api.post(`/comments/matches/${matchId}`, { content, parent_id: parentId });
 
 // 删除评论
 export const deleteComment = (id) => api.delete(`/comments/${id}`);

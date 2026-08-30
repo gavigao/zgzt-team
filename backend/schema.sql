@@ -193,12 +193,17 @@ CREATE TABLE IF NOT EXISTS comments (
   id INT AUTO_INCREMENT PRIMARY KEY,
   match_id INT NOT NULL,
   user_id INT NOT NULL,
+  parent_id INT DEFAULT NULL COMMENT '一级回复所属的主评论',
   content TEXT NOT NULL,
+  is_deleted TINYINT(1) NOT NULL DEFAULT 0 COMMENT '有回复的评论删除后保留占位',
+  deleted_at TIMESTAMP NULL DEFAULT NULL,
   like_count INT NOT NULL DEFAULT 0 COMMENT '点赞数',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_match (match_id),
+  INDEX idx_comments_parent (parent_id, created_at),
   FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (parent_id) REFERENCES comments(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 评论点赞记录（谁给哪条评论点了赞）
