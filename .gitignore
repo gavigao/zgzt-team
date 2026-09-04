@@ -23,6 +23,7 @@ backend/public/uploads/
 /球队数据.sql
 /球员信息.xlsx
 /read_xlsx.ps1
+/备忘录.txt
 
 # 敏感交接资料（含服务器、数据库或账号信息）
 codex接管项目指南.md
