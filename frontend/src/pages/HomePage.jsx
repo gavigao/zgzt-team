@@ -5,8 +5,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Newspaper,
-  Pause,
-  Play,
   Swords,
 } from 'lucide-react';
 import { getHomeSlides, getMatches, getNews, getTrainingSchedules } from '../api/public';
@@ -30,7 +28,8 @@ const POSITION_CLASSES = {
 
 export default function HomePage() {
   const [current, setCurrent] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocusWithin, setIsFocusWithin] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [slides, setSlides] = useState(DEFAULT_SLIDES);
   const [training, setTraining] = useState([]);
@@ -49,14 +48,14 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (isPaused || prefersReducedMotion || slides.length < 2) return undefined;
+    if (isHovered || isFocusWithin || prefersReducedMotion || slides.length < 2) return undefined;
 
     timerRef.current = setInterval(() => {
       setCurrent(value => (value + 1) % slides.length);
     }, 6000);
 
     return () => clearInterval(timerRef.current);
-  }, [isPaused, prefersReducedMotion, slides.length]);
+  }, [isHovered, isFocusWithin, prefersReducedMotion, slides.length]);
 
   useEffect(() => {
     getHomeSlides()
@@ -95,6 +94,12 @@ export default function HomePage() {
         className="relative isolate w-full h-[58svh] min-h-[420px] max-h-[560px] sm:h-[64vh] sm:min-h-[480px] sm:max-h-[640px] lg:h-[70vh] lg:max-h-[680px] bg-slate-950 overflow-hidden"
         aria-roledescription="carousel"
         aria-label="球队精彩瞬间"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onFocusCapture={() => setIsFocusWithin(true)}
+        onBlurCapture={event => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setIsFocusWithin(false);
+        }}
       >
         {slides.map((slide, index) => (
           <div
@@ -135,8 +140,7 @@ export default function HomePage() {
         <div className="absolute inset-x-0 bottom-0 z-10 pb-16 sm:pb-20">
           <div className="max-w-6xl mx-auto px-5 sm:px-6 text-center text-white">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight [text-wrap:balance] drop-shadow-lg">政国中统联队</h1>
-            <p className="mt-3 text-sm sm:text-base text-slate-100 drop-shadow">对外经济贸易大学</p>
-            <p className="mx-auto mt-1 max-w-2xl text-xs sm:text-sm leading-6 text-slate-200 drop-shadow">政府管理学院 · 国际关系学院 · 文传学院 · 统计学院</p>
+            <p className="mx-auto mt-3 max-w-2xl text-sm sm:text-base leading-6 text-slate-100 drop-shadow">政管·国关·文传·统计</p>
             <div className="mt-6 flex items-center justify-center gap-3 flex-wrap">
               <Link to="/matches" className="min-h-11 px-5 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl shadow-lg shadow-red-950/30 inline-flex items-center gap-1.5 transition-colors hover:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950">
                 <Swords size={16} /> 赛程安排
@@ -148,7 +152,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        {slides.length > 1 && <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center z-10" aria-label="轮播控制">
+        {slides.length > 1 && <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center z-10" aria-label="轮播分页">
           {slides.map((slide, index) => (
             <button
               type="button"
@@ -161,16 +165,6 @@ export default function HomePage() {
               <span className={`h-2 rounded-full transition-all motion-reduce:transition-none ${index === current ? 'bg-white w-5' : 'bg-white/45 w-2 group-hover:bg-white/70'}`} />
             </button>
           ))}
-          {!prefersReducedMotion && (
-            <button
-              type="button"
-              onClick={() => setIsPaused(value => !value)}
-              className="ml-1 w-11 h-11 inline-flex items-center justify-center rounded-full text-white/90 transition-colors hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-              aria-label={isPaused ? '播放轮播' : '暂停轮播'}
-            >
-              {isPaused ? <Play size={15} fill="currentColor" /> : <Pause size={15} fill="currentColor" />}
-            </button>
-          )}
         </div>}
       </section>
 
