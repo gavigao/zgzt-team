@@ -228,7 +228,7 @@ export default function PublicLayout() {
             <span className="text-primary">政国中统联队</span>
           </div>
           <p className="text-xs text-gray-400 mb-1">
-            对外经济贸易大学 · 政府管理学院 · 国际关系学院 · 文传学院 · 统计学院
+            政管·国关·文传·统计
           </p>
           <p className="text-xs text-gray-300">© 2019 - {new Date().getFullYear()}</p>
         </div>
