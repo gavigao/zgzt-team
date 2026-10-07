@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { listPlayers, createPlayer, updatePlayer, deletePlayer, uploadImage } from '../../api/admin';
-import { Plus, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X } from 'lucide-react';
 import ImageUploader from '../../components/ImageUploader';
 
 const EMPTY = {
@@ -17,6 +17,8 @@ export default function AdminPlayers() {
   const [form, setForm] = useState(EMPTY);
   const [editId, setEditId] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef(null);
 
   const load = async () => {
     try { const res = await listPlayers(); setPlayers(res.data); } catch {} finally { setLoading(false); }
@@ -25,6 +27,16 @@ export default function AdminPlayers() {
 
   const openNew = () => { setForm(EMPTY); setEditId(null); setShowModal(true); };
   const openEdit = (p) => { setForm({ ...EMPTY, ...p }); setEditId(p.id); setShowModal(true); };
+
+  const normalizedQuery = searchQuery.trim().toLocaleLowerCase();
+  const filteredPlayers = normalizedQuery
+    ? players.filter((player) => player.name?.toLocaleLowerCase().includes(normalizedQuery))
+    : players;
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    searchInputRef.current?.focus();
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -53,6 +65,38 @@ export default function AdminPlayers() {
         <button onClick={openNew} className="flex items-center gap-1.5 px-3 py-2 bg-primary text-white text-sm rounded-xl hover:bg-red-700"><Plus size={16}/>新增队员</button>
       </div>
 
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div className="w-full sm:max-w-sm">
+          <label htmlFor="player-name-search" className="mb-1.5 block text-sm font-medium text-text-main">搜索队员</label>
+          <div className="relative">
+          <Search aria-hidden="true" size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-sub" />
+          <input
+            ref={searchInputRef}
+            id="player-name-search"
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="输入队员姓名"
+            aria-describedby="player-search-status"
+            className="min-h-11 w-full rounded-xl border border-gray-200 bg-white py-2 pl-10 pr-11 text-base sm:text-sm text-text-main outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15 [&::-webkit-search-cancel-button]:hidden"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl text-text-sub transition hover:text-text-main focus:outline-none focus:ring-2 focus:ring-primary/30"
+              aria-label="清空搜索"
+            >
+              <X size={17} aria-hidden="true" />
+            </button>
+          )}
+          </div>
+        </div>
+        <p id="player-search-status" className="min-h-5 text-xs text-text-sub" role="status">
+          {normalizedQuery ? `找到 ${filteredPlayers.length} 名队员` : '输入姓名即可筛选'}
+        </p>
+      </div>
+
       {/* 表格 */}
       <div className="bg-white rounded-2xl card-shadow overflow-x-auto">
         <table className="w-full min-w-[760px] text-sm">
@@ -60,7 +104,7 @@ export default function AdminPlayers() {
             <th className="p-3 pl-4">姓名</th><th className="p-3">账号绑定</th><th className="p-3">位置</th><th className="p-3">号码</th><th className="p-3">学院</th><th className="p-3">状态</th><th className="p-3 pr-4">操作</th>
           </tr></thead>
           <tbody>
-            {players.map(p => (
+            {filteredPlayers.length ? filteredPlayers.map(p => (
               <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                 <td className="p-3 pl-4 font-medium">{p.name}{p.is_captain ? <span className="ml-1.5 text-xs text-amber-600">现任队长</span>:''}{p.is_former_captain ? <span className="ml-1.5 text-xs text-blue-600">历届队长</span>:''}</td>
                 <td className="p-3 text-xs text-text-sub">{p.bound_account || <span className="text-amber-600">未绑定</span>}</td>
@@ -73,7 +117,14 @@ export default function AdminPlayers() {
                   <button onClick={()=>handleDelete(p.id)} className="p-1 text-gray-400 hover:text-red-500"><Trash2 size={15}/></button>
                 </td>
               </tr>
-            ))}
+            )) : (
+              <tr>
+                <td colSpan="7" className="px-4 py-10 text-left sm:text-center text-sm text-text-sub">
+                  <p>{normalizedQuery ? '没有找到对应的队员' : '暂无队员'}</p>
+                  {normalizedQuery && <p className="mt-1 text-xs">试试部分姓名，或清空搜索查看全部队员</p>}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
