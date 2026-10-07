@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
 import { listNews, createNews, updateNews, deleteNews, uploadImage } from '../../api/admin';
-import { Plus, Edit2, Trash2, X, Eye, FileEdit } from 'lucide-react';
+import { Plus, Edit2, Trash2, X } from 'lucide-react';
 import ImageUploader from '../../components/ImageUploader';
 
-const EMPTY = { title: '', content: '', summary: '', cover_image: '', is_pinned: false, status: 'draft' };
+const EMPTY = { title: '', content: '', summary: '', cover_image: '', is_pinned: false, status: 'draft', published_at: '' };
+
+function todayDate() {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+}
 
 export default function AdminNews() {
   const [news, setNews] = useState([]);
@@ -16,8 +21,8 @@ export default function AdminNews() {
   const load = async () => { try { setNews((await listNews()).data); } catch {} finally { setLoading(false); } };
   useEffect(() => { load(); }, []);
 
-  const openNew = () => { setForm(EMPTY); setEditId(null); setShow(true); };
-  const openEdit = (n) => { setForm(n); setEditId(n.id); setShow(true); };
+  const openNew = () => { setForm({ ...EMPTY, published_at: todayDate() }); setEditId(null); setShow(true); };
+  const openEdit = (n) => { setForm({ ...EMPTY, ...n, published_at: n.published_at?.substring(0, 10) || todayDate() }); setEditId(n.id); setShow(true); };
 
   const handleSave = async (e) => {
     e.preventDefault(); if (!form.title) return alert('标题不能为空'); setSaving(true);
@@ -66,6 +71,24 @@ export default function AdminNews() {
             <form onSubmit={handleSave} className="p-4 space-y-3">
               <input className="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm" placeholder="标题 *" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} required/>
               <input className="w-full px-3 py-2 bg-gray-50 border rounded-xl text-sm" placeholder="摘要" value={form.summary} onChange={e=>setForm({...form,summary:e.target.value})}/>
+              <div>
+                <label htmlFor="news-published-at" className="mb-1.5 block text-sm font-medium text-text-main">发布日期</label>
+                <input
+                  id="news-published-at"
+                  type="date"
+                  min="1000-01-01"
+                  max="9999-12-31"
+                  required
+                  value={form.published_at}
+                  onChange={e=>setForm({...form,published_at:e.target.value})}
+                  aria-describedby="news-published-at-help"
+                  className="min-h-11 w-full min-w-0 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-base sm:text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+                />
+                <p id="news-published-at-help" className="mt-1.5 text-xs text-text-sub">前台按此日期显示和排序；编辑正文不会自动更改日期。</p>
+                {form.status === 'published' && form.published_at > todayDate() && (
+                  <p className="mt-1 text-xs text-amber-700">当前状态会立即公开新闻，所选未来日期不会延迟发布。</p>
+                )}
+              </div>
               <div>
                 <p className="text-xs text-text-sub mb-1.5">封面图</p>
                 <ImageUploader

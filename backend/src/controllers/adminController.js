@@ -2,6 +2,7 @@ const pool = require('../db/index');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { BCRYPT_ROUNDS } = require('../config/auth');
+const { normalizeNewsPublicationDate } = require('../utils/newsPublicationDate');
 
 const ACCOUNT_PATTERN = /^[a-z0-9_-]{4,32}$/;
 const HOME_SLIDE_POSITIONS = new Set(['center', 'top', 'bottom']);
@@ -210,20 +211,22 @@ exports.deleteMatch = async (req, res, next) => {
 
 exports.listNews = async (req, res, next) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM news ORDER BY is_pinned DESC, created_at DESC');
+    const [rows] = await pool.query('SELECT * FROM news ORDER BY is_pinned DESC, COALESCE(published_at, created_at) DESC, id DESC');
     res.json({ code: 200, data: rows, message: 'ok' });
   } catch (err) { next(err); }
 };
 
 exports.createNews = async (req, res, next) => {
   try {
-    const { title, content, cover_image, summary, is_pinned, status } = req.body;
+    const { title, content, cover_image, summary, is_pinned, status = 'draft' } = req.body;
     if (!title) return res.status(400).json({ code: 400, data: null, message: '标题不能为空' });
-    const published_at = status === 'published' ? new Date() : null;
+    if (!['draft', 'published'].includes(status)) return res.status(400).json({ code: 400, data: null, message: '新闻状态无效' });
+    const publishedAt = normalizeNewsPublicationDate(req.body.published_at);
 
     const [result] = await pool.query(
-      'INSERT INTO news (title, content, cover_image, summary, is_pinned, status, published_at, created_by) VALUES (?,?,?,?,?,?,?,?)',
-      [title, content || null, cover_image || null, summary || null, is_pinned ? 1 : 0, status || 'draft', published_at, req.user.id]
+      `INSERT INTO news (title, content, cover_image, summary, is_pinned, status, published_at, created_by)
+       VALUES (?,?,?,?,?,?,COALESCE(?, CASE WHEN ? = 'published' THEN CURRENT_TIMESTAMP ELSE NULL END),?)`,
+      [title, content || null, cover_image || null, summary || null, is_pinned ? 1 : 0, status, publishedAt, status, req.user.id]
     );
     const [rows] = await pool.query('SELECT * FROM news WHERE id = ?', [result.insertId]);
     res.status(201).json({ code: 201, data: rows[0], message: '新闻添加成功' });
@@ -233,22 +236,22 @@ exports.createNews = async (req, res, next) => {
 exports.updateNews = async (req, res, next) => {
   try {
     const { title, content, cover_image, summary, is_pinned, status } = req.body;
-    // 如果从草稿变为发布，设置发布时间
-    const [old] = await pool.query('SELECT status FROM news WHERE id = ?', [req.params.id]);
-    const wasDraft = old[0]?.status === 'draft';
-    const published_at = (wasDraft && status === 'published') ? new Date() : undefined;
+    if (!title) return res.status(400).json({ code: 400, data: null, message: '标题不能为空' });
+    const selectedDate = normalizeNewsPublicationDate(req.body.published_at);
+    const [old] = await pool.query('SELECT status, published_at FROM news WHERE id = ?', [req.params.id]);
+    if (!old[0]) return res.status(404).json({ code: 404, data: null, message: '新闻不存在' });
+    const nextStatus = status ?? old[0].status;
+    if (!['draft', 'published'].includes(nextStatus)) return res.status(400).json({ code: 400, data: null, message: '新闻状态无效' });
 
-    let sql, params;
-    if (published_at) {
-      sql = 'UPDATE news SET title=?, content=?, cover_image=?, summary=?, is_pinned=?, status=?, published_at=? WHERE id=?';
-      params = [title, content || null, cover_image || null, summary || null, is_pinned ? 1 : 0, status, published_at, req.params.id];
-    } else {
-      sql = 'UPDATE news SET title=?, content=?, cover_image=?, summary=?, is_pinned=?, status=? WHERE id=?';
-      params = [title, content || null, cover_image || null, summary || null, is_pinned ? 1 : 0, status, req.params.id];
-    }
-
-    const [result] = await pool.query(sql, params);
-    if (result.affectedRows === 0) return res.status(404).json({ code: 404, data: null, message: '新闻不存在' });
+    // Preserve the original time as well as the day when the date is unchanged.
+    const originalDate = old[0].published_at;
+    const publishedAt = selectedDate && selectedDate.substring(0, 10) !== originalDate?.substring(0, 10)
+      ? selectedDate : originalDate;
+    await pool.query(
+      `UPDATE news SET title=?, content=?, cover_image=?, summary=?, is_pinned=?, status=?,
+       published_at=COALESCE(?, CASE WHEN ? = 'published' THEN CURRENT_TIMESTAMP ELSE NULL END) WHERE id=?`,
+      [title, content || null, cover_image || null, summary || null, is_pinned ? 1 : 0, nextStatus, publishedAt || null, nextStatus, req.params.id]
+    );
     const [rows] = await pool.query('SELECT * FROM news WHERE id = ?', [req.params.id]);
     res.json({ code: 200, data: rows[0], message: '新闻更新成功' });
   } catch (err) { next(err); }

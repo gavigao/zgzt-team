@@ -28,6 +28,23 @@
 
 迁移脚本只应执行一次。先检查生产表结构和迁移状态，不要以重跑脚本代替问题排查。
 
+### 新闻自选发布日期（2026-10-07）
+
+本次涉及前端、后端和一个字段类型迁移；不能只构建前端。
+
+1. 备份生产 `zgzt_team` 数据库，备份存放于项目外的私有目录。
+2. 拉取代码后，使用有结构变更权限的数据库账号执行
+   `backend/migrations/20261007_editable_news_publication_date.sql`。只将
+   `news.published_at` 从 `TIMESTAMP` 改成 `DATETIME`，按应用使用的全局时区保留原日期时间。
+   核验 `SHOW COLUMNS FROM news LIKE 'published_at'`，类型应为 `datetime`。
+3. 在 `frontend` 运行 `npm ci && npm run build`，并保证 `dist` 可读。
+4. 执行 `pm2 reload zgzt-team`，然后检查 `/api/health`。
+5. 在后台编辑旧新闻，只更改正文后保存，原发布日期应保持；再选择不同日期，
+   保存并重新打开，后台、前台列表及详情日期应一致。
+
+此次不会新增依赖，不需要重新安装后端依赖。不要重新导入 `schema.sql` 或样例数据。
+发布日期允许历史与未来日期；公开状态由“草稿/发布”决定，未来日期不提供自动定时发布。
+
 ## 域名与 HTTPS
 
 正式域名和 HTTPS 已于 2026-09-03 配置完成：
