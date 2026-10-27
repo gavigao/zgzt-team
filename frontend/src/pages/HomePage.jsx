@@ -171,21 +171,19 @@ export default function HomePage() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14">
         <div className="flex items-center justify-between gap-3 mb-5 sm:mb-6">
           <div>
-            <p className="text-xs font-semibold tracking-[0.14em] text-secondary">近期安排</p>
-            <h2 className="mt-1 text-xl sm:text-2xl font-bold text-text-main flex items-center gap-2">
-              <CalendarDays size={21} className="text-secondary" aria-hidden="true" /> 训练与活动安排
-            </h2>
+            <p className="text-xs font-semibold tracking-[0.14em] text-secondary">最新动态</p>
+            <h2 className="mt-1 text-xl sm:text-2xl font-bold text-text-main flex items-center gap-2"><Newspaper size={21} className="text-secondary" aria-hidden="true" /> 球队新闻</h2>
           </div>
-          <Link to="/training" className="-mr-2 min-h-11 px-2 text-sm font-medium text-secondary hover:text-blue-800 inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary rounded-lg">
+          <Link to="/news" className="-mr-2 min-h-11 px-2 text-sm font-medium text-secondary hover:text-blue-800 inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary rounded-lg">
             全部 <ChevronRight size={16} aria-hidden="true" />
           </Link>
         </div>
         {loading ? (
-          <div className="grid md:grid-cols-3 gap-4">{[1, 2, 3].map(i => <div key={i} className="skeleton h-32 rounded-2xl" />)}</div>
-        ) : training.length === 0 ? (
-          <div className="bg-white rounded-2xl card-shadow p-8 text-center text-sm text-text-sub">暂时没有新的训练或活动安排</div>
+          <div className="grid md:grid-cols-3 gap-4">{[1, 2, 3].map(i => <div key={i} className="skeleton h-60 rounded-2xl" />)}</div>
+        ) : latestNews.length === 0 ? (
+          <p className="text-sm text-text-sub text-center py-8">暂无新闻</p>
         ) : (
-          <div className="grid md:grid-cols-3 gap-4">{training.map(item => <TrainingCard key={item.id} schedule={item} />)}</div>
+          <div className="grid md:grid-cols-3 gap-4">{latestNews.map(news => <NewsCard key={news.id} news={news} />)}</div>
         )}
       </section>
 
@@ -214,19 +212,21 @@ export default function HomePage() {
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-12 sm:pb-16">
         <div className="flex items-center justify-between gap-3 mb-5 sm:mb-6">
           <div>
-            <p className="text-xs font-semibold tracking-[0.14em] text-secondary">最新动态</p>
-            <h2 className="mt-1 text-xl sm:text-2xl font-bold text-text-main flex items-center gap-2"><Newspaper size={21} className="text-secondary" aria-hidden="true" /> 球队新闻</h2>
+            <p className="text-xs font-semibold tracking-[0.14em] text-secondary">近期安排</p>
+            <h2 className="mt-1 text-xl sm:text-2xl font-bold text-text-main flex items-center gap-2">
+              <CalendarDays size={21} className="text-secondary" aria-hidden="true" /> 训练与活动安排
+            </h2>
           </div>
-          <Link to="/news" className="-mr-2 min-h-11 px-2 text-sm font-medium text-secondary hover:text-blue-800 inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary rounded-lg">
+          <Link to="/training" className="-mr-2 min-h-11 px-2 text-sm font-medium text-secondary hover:text-blue-800 inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary rounded-lg">
             全部 <ChevronRight size={16} aria-hidden="true" />
           </Link>
         </div>
         {loading ? (
-          <div className="grid md:grid-cols-3 gap-4">{[1, 2, 3].map(i => <div key={i} className="skeleton h-60 rounded-2xl" />)}</div>
-        ) : latestNews.length === 0 ? (
-          <p className="text-sm text-text-sub text-center py-8">暂无新闻</p>
+          <div className="grid md:grid-cols-3 gap-4">{[1, 2, 3].map(i => <div key={i} className="skeleton h-32 rounded-2xl" />)}</div>
+        ) : training.length === 0 ? (
+          <div className="bg-white rounded-2xl card-shadow p-8 text-center text-sm text-text-sub">暂时没有新的训练或活动安排</div>
         ) : (
-          <div className="grid md:grid-cols-3 gap-4">{latestNews.map(news => <NewsCard key={news.id} news={news} />)}</div>
+          <div className="grid md:grid-cols-3 gap-4">{training.map(item => <TrainingCard key={item.id} schedule={item} />)}</div>
         )}
       </section>
     </div>
