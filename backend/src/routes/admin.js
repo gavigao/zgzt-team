@@ -19,6 +19,9 @@ router.post('/players', ctrl.createPlayer);
 router.put('/players/:id', ctrl.updatePlayer);
 router.delete('/players/:id', ctrl.deletePlayer);
 
+// 赛季（读取复用公开接口，新增仅限管理员）
+router.post('/seasons', ctrl.createSeason);
+
 // 比赛 CRUD
 router.get('/matches', ctrl.listMatches);
 router.post('/matches', ctrl.createMatch);

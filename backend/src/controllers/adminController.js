@@ -161,6 +161,30 @@ exports.deletePlayer = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+// ==================== 赛季管理 ====================
+
+exports.createSeason = async (req, res, next) => {
+  const rawName = req.body?.name;
+  const name = typeof rawName === 'string'
+    ? rawName.trim().replace(/[–—]/g, '-').replace(/\s*-\s*/g, '-')
+    : '';
+  const years = /^(\d{4})-(\d{4})$/.exec(name);
+  if (!years || Number(years[1]) < 1000 || Number(years[2]) !== Number(years[1]) + 1) {
+    return res.status(400).json({ code: 400, data: null, message: '赛季名称请使用连续年份，例如 2026-2027' });
+  }
+
+  try {
+    const [result] = await pool.query('INSERT INTO seasons (name) VALUES (?)', [name]);
+    const [rows] = await pool.query('SELECT * FROM seasons WHERE id = ?', [result.insertId]);
+    res.status(201).json({ code: 201, data: rows[0], message: '赛季添加成功' });
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ code: 409, data: null, message: '该赛季已存在，请在赛季列表中选择' });
+    }
+    next(err);
+  }
+};
+
 // ==================== 比赛管理 ====================
 
 exports.listMatches = async (req, res, next) => {

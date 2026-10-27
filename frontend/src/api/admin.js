@@ -9,6 +9,9 @@ export const createPlayer = (data) => api.post('/admin/players', data);
 export const updatePlayer = (id, data) => api.put(`/admin/players/${id}`, data);
 export const deletePlayer = (id) => api.delete(`/admin/players/${id}`);
 
+// 赛季
+export const createSeason = (data) => api.post('/admin/seasons', data);
+
 // 比赛 CRUD
 export const listMatches = () => api.get('/admin/matches');
 export const createMatch = (data) => api.post('/admin/matches', data);
